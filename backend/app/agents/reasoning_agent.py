@@ -73,18 +73,20 @@ def _try_ollama_explanation(message: Dict[str, Any]) -> Optional[str]:
         return None
 
 
-def generate_explanation(message: Dict[str, Any]) -> str:
+def generate_explanation(message: Dict[str, Any], allow_llm: bool = True) -> str:
     """
     Produce a human-readable explanation for one agent message.
 
     Prefer a local Llama 3 via Ollama when available; otherwise template text.
+    Set allow_llm=False for latency-sensitive bulk endpoints.
     """
-    try:
-        llm_text = _try_ollama_explanation(message)
-        if llm_text:
-            return llm_text
-    except Exception:
-        pass
+    if allow_llm:
+        try:
+            llm_text = _try_ollama_explanation(message)
+            if llm_text:
+                return llm_text
+        except Exception:
+            pass
     return _template_explanation(message)
 
 
