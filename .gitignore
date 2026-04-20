@@ -3,7 +3,40 @@
 venv/
 env/
 
+# Environment variables (CRITICAL)
+.env
+.env.*
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build / dist
+build/
+dist/
+
+# Testing / cache
+.pytest_cache/
+.mypy_cache/
+
+# AI / ML
+*.pt
+*.pth
+*.onnx
+.cache/
+
+# Database
+*.sqlite3
