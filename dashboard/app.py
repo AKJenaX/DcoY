@@ -46,7 +46,11 @@ st_autorefresh(interval=2000, key="refresh_main")
 
 REFRESH_INTERVAL = 2
 EXPLAIN_REFRESH_INTERVAL = 15
-BACKEND_URLS = ["http://127.0.0.1:8000", "http://localhost:8000"]
+BACKEND_URLS = [
+    "http://backend:8000",        # ✅ docker service name (primary)
+    "http://dcoy_backend:8000",   # optional fallback (container name)
+    "http://127.0.0.1:8000",      # fallback (local run)
+]
 
 
 def find_working_backend():
@@ -289,7 +293,11 @@ ensure_autorefresh_once()
 
 REFRESH_INTERVAL = 2
 EXPLAIN_REFRESH_INTERVAL = 15
-BACKEND_URLS = ["http://127.0.0.1:8000", "http://localhost:8000"]
+BACKEND_URLS = [
+    "http://backend:8000",        # ✅ docker service name (primary)
+    "http://dcoy_backend:8000",   # optional fallback (container name)
+    "http://127.0.0.1:8000",      # fallback (local run)
+]
 
 
 def find_working_backend():
@@ -520,7 +528,11 @@ ensure_autorefresh_once()
 
 REFRESH_INTERVAL = 2
 EXPLAIN_REFRESH_INTERVAL = 15
-BACKEND_URLS = ["http://127.0.0.1:8000", "http://localhost:8000"]
+BACKEND_URLS = [
+    "http://backend:8000",        # ✅ docker service name (primary)
+    "http://dcoy_backend:8000",   # optional fallback (container name)
+    "http://127.0.0.1:8000",      # fallback (local run)
+]
 
 
 def find_working_backend():
@@ -868,7 +880,11 @@ ensure_autorefresh_once()
 
 REFRESH_INTERVAL = 2
 EXPLAIN_REFRESH_INTERVAL = 15
-BACKEND_URLS = ["http://127.0.0.1:8000", "http://localhost:8000"]
+BACKEND_URLS = [
+    "http://backend:8000",        # ✅ docker service name (primary)
+    "http://dcoy_backend:8000",   # optional fallback (container name)
+    "http://127.0.0.1:8000",      # fallback (local run)
+]
 
 
 def find_working_backend():
@@ -1235,7 +1251,11 @@ ensure_autorefresh_once()
 
 REFRESH_INTERVAL = 2
 EXPLAIN_REFRESH_INTERVAL = 15
-BACKEND_URLS = ["http://127.0.0.1:8000", "http://localhost:8000"]
+BACKEND_URLS = [
+    "http://backend:8000",        # ✅ docker service name (primary)
+    "http://dcoy_backend:8000",   # optional fallback (container name)
+    "http://127.0.0.1:8000",      # fallback (local run)
+]
 
 
 def find_working_backend():
@@ -1587,8 +1607,9 @@ REFRESH_INTERVAL = 2
 EXPLAIN_REFRESH_INTERVAL = 15
 
 BACKEND_URLS = [
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
+    "http://backend:8000",        # ✅ docker service name (primary)
+    "http://dcoy_backend:8000",   # optional fallback (container name)
+    "http://127.0.0.1:8000",      # fallback (local run)
 ]
 
 
@@ -1869,8 +1890,9 @@ REFRESH_INTERVAL = 2
 EXPLAIN_REFRESH_INTERVAL = 15
 
 BACKEND_URLS = [
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
+    "http://backend:8000",        # ✅ docker service name (primary)
+    "http://dcoy_backend:8000",   # optional fallback (container name)
+    "http://127.0.0.1:8000",      # fallback (local run)
 ]
 
 
@@ -2095,10 +2117,10 @@ EXPLAIN_REFRESH_INTERVAL = 15  # seconds
 
 # Multiple backend URLs to try
 BACKEND_URLS = [
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
+    "http://backend:8000",        # ✅ docker service name (primary)
+    "http://dcoy_backend:8000",   # optional fallback (container name)
+    "http://127.0.0.1:8000",      # fallback (local run)
 ]
-
 API_BASE = None  # Will be set dynamically
 
 # Initialize session state for timing
