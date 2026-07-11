@@ -65,14 +65,43 @@ def generate_synthetic_event() -> dict:
     return event
 
 
+API_KEY = None
+
+def get_or_create_api_key() -> str:
+    """Automatically register and generate an API key for the simulator user."""
+    base_url = "http://127.0.0.1:8000"
+    user_payload = {"username": "simulator_user", "password": "simulator_password_123"}
+    
+    # 1. Try to register (might fail if already exists, which is fine)
+    try:
+        requests.post(f"{base_url}/register", json=user_payload, timeout=5)
+    except Exception:
+        pass
+        
+    # 2. Generate API key
+    try:
+        r = requests.post(f"{base_url}/generate-api-key", json=user_payload, timeout=5)
+        if r.status_code == 200:
+            return r.json().get("api_key", "")
+    except Exception as e:
+        logger.error(f"Failed to generate API Key: {str(e)}")
+    return ""
+
+
 def send_batch(events: list) -> bool:
     """Send a batch of events to the ingest endpoint."""
+    global API_KEY
+    if not API_KEY:
+        API_KEY = get_or_create_api_key()
+        
     try:
         payload = {"data": events}
+        headers = {"X-API-Key": API_KEY} if API_KEY else {}
         
         response = requests.post(
             API_URL,
             json=payload,
+            headers=headers,
             timeout=10,
             verify=False
         )
@@ -95,6 +124,9 @@ def send_batch(events: list) -> bool:
         return False
     except requests.exceptions.RequestException as e:
         logger.error(f"✗ Request failed: {str(e)}")
+        # Reset key on 401/403 to trigger a refetch next loop
+        if hasattr(e, 'response') and e.response is not None and e.response.status_code in (401, 403):
+            API_KEY = None
         return False
     except Exception as e:
         logger.error(f"✗ Unexpected error: {str(e)}")

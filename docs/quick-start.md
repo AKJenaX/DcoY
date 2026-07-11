@@ -49,7 +49,7 @@ docker-compose up --build
 ### Method 1: Automatic Verification
 ```bash
 # From project root
-python verify_setup.py
+python scripts/verify_setup.py
 ```
 
 ### Method 2: Manual Testing
@@ -98,20 +98,15 @@ python verify_setup.py
 
 ---
 
-## Key Files Modified
-
+## Key Files
 - `dashboard/app.py` - Enhanced error handling and logging
 - `backend/app/main.py` - Added logging and improved health check
-
-See `BACKEND_FRONTEND_FIX.md` for detailed changes.
 
 ---
 
 ## Troubleshooting
 
-1. **Check backend logs** - Look for errors in Terminal 1
-2. **Run verify_setup.py** - Comprehensive system check
-3. **Check port conflicts** - Ensure 8000 and 8501 are free
-4. **Test endpoints directly** - Use curl commands above
-
-Need help? Check `BACKEND_FRONTEND_FIX.md` for detailed documentation.
+1. **Check backend logs** - Look for errors in the backend terminal.
+2. **Run scripts/verify_setup.py** - Comprehensive system check.
+3. **Check port conflicts** - Ensure 8000 and 8501 are free.
+4. **Test endpoints directly** - Use curl commands above.

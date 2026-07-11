@@ -11,6 +11,15 @@ from fastapi.responses import StreamingResponse
 from app.agents import deception_agent, detection_agent, response_agent
 from app.agents.reasoning_agent import answer_question, generate_explanation
 from app.config import settings
+from app.models import (
+    IngestPayload,
+    DetectResponse,
+    AgentPipelineResponse,
+    ExplainPipelineResponse,
+    IngestResponse,
+    ApiDetectResponse,
+    ApiExplainResponse,
+)
 from app.deception.honeypot import build_response_summary
 from app.detection.anomaly import (
     build_attack_summary,
@@ -66,20 +75,31 @@ def _run_agent_pipeline(user: str = "default_user") -> List[Dict[str, Any]]:
 
 def get_current_user_from_token(authorization: str = Header(None)) -> str:
     if not authorization:
-        # Backward-compatible fallback for legacy dashboard/testing flows.
-        return "default_user"
+        raise HTTPException(status_code=401, detail="Missing authorization header")
 
     token = authorization.replace("Bearer ", "", 1).strip()
     if not token:
-        return "default_user"
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
     payload = decode_access_token(token)
 
     if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     user = payload.get("user")
     if not user:
         raise HTTPException(status_code=401, detail="Invalid token payload")
+    return user
+
+
+def get_current_user_from_api_key(x_api_key: str = Header(None)):
+    x_api_key = x_api_key.strip() if x_api_key else None
+    if not x_api_key:
+        logger.warning("API request missing API key header")
+        raise HTTPException(status_code=401, detail="Missing or invalid API Key")
+    user = validate_api_key(x_api_key)
+    if not user:
+        logger.warning("API request with invalid API key")
+        raise HTTPException(status_code=401, detail="Missing or invalid API Key")
     return user
 
 
@@ -109,8 +129,8 @@ def health_check() -> Dict[str, str]:
     }
 
 
-@app.post("/api/ingest")
-def ingest_events(payload: Dict[str, Any]) -> Dict[str, Any]:
+@app.post("/api/ingest", response_model=IngestResponse)
+def ingest_events(payload: IngestPayload, user: str = Depends(get_current_user_from_api_key)) -> IngestResponse:
     """
     Live event ingestion endpoint.
     
@@ -118,50 +138,35 @@ def ingest_events(payload: Dict[str, Any]) -> Dict[str, Any]:
     Keeps only the last 100 events.
     
     Args:
-        payload: Dictionary with "data" key containing list of events
+        payload: IngestPayload containing a list of threat events
         
     Returns:
-        Success message with event count
-        
-    Example:
-        POST /api/ingest
-        {
-            "data": [
-                {"ip": "192.168.1.1", "failed_logins": 5, ...},
-                {"ip": "192.168.1.2", "failed_logins": 10, ...}
-            ]
-        }
+        IngestResponse with success message, count, and total store size
     """
     logger.info("POST /api/ingest - Ingesting live events")
     
     try:
-        data = payload.get("data", [])
-        
-        if not isinstance(data, list):
-            logger.warning("Invalid payload: 'data' must be a list")
-            raise HTTPException(status_code=400, detail="'data' must be a list")
-        
         count = 0
-        for event in data:
-            if isinstance(event, dict):
-                add_event(event)
-                count += 1
+        for event in payload.data:
+            add_event(event.model_dump(exclude_none=True))
+            count += 1
         
         logger.info(f"Ingested {count} events. Total in store: {len(get_events())}")
         
-        return {
-            "message": "Events ingested successfully",
-            "count": count,
-            "total_in_store": len(get_events())
-        }
+        return IngestResponse(
+            message="Events ingested successfully",
+            count=count,
+            total_in_store=len(get_events())
+        )
     
     except Exception as e:
         logger.error(f"Error ingesting events: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
+
 @app.get("/api/capture")
-def capture_event() -> Dict[str, Any]:
+def capture_event(user: str = Depends(get_current_user_from_api_key)) -> Dict[str, Any]:
     event = capture_basic_event()
 
     if event:
@@ -171,8 +176,9 @@ def capture_event() -> Dict[str, Any]:
     return {"message": "Capture failed"}
 
 
-@app.get("/detect")
-def run_anomaly_detection() -> Dict[str, Any]:
+
+@app.get("/detect", response_model=DetectResponse)
+def run_anomaly_detection(user: str = Depends(get_current_user_from_token)) -> DetectResponse:
     """Run the Isolation Forest pipeline on live data if available, otherwise CSV."""
     logger.info("GET /detect - Running anomaly detection")
     try:
@@ -189,17 +195,18 @@ def run_anomaly_detection() -> Dict[str, Any]:
 
     logger.info(f"Detection result: {anomalies_detected} anomalies in {len(data)} records")
 
-    return {
-        "total_records": len(data),
-        "anomalies_detected": anomalies_detected,
-        "attack_summary": attack_summary,
-        "response_summary": response_summary,
-        "data": data,
-    }
+    return DetectResponse(
+        total_records=len(data),
+        anomalies_detected=anomalies_detected,
+        attack_summary=attack_summary,
+        response_summary=response_summary,
+        data=data,
+    )
 
 
-@app.get("/agents")
-def run_agent_pipeline(user: str = Depends(get_current_user_from_token)) -> Dict[str, Any]:
+
+@app.get("/agents", response_model=AgentPipelineResponse)
+def run_agent_pipeline(user: str = Depends(get_current_user_from_token)) -> AgentPipelineResponse:
     """
     Multi-agent workflow: detection → deception → response.
 
@@ -216,17 +223,17 @@ def run_agent_pipeline(user: str = Depends(get_current_user_from_token)) -> Dict
     medium_risk = sum(1 for m in messages if m.get("risk_level") == "medium")
     low_risk = sum(1 for m in messages if m.get("risk_level") == "low")
 
-    return {
-        "total_events": len(messages),
-        "high_risk": high_risk,
-        "medium_risk": medium_risk,
-        "low_risk": low_risk,
-        "data": messages,
-    }
+    return AgentPipelineResponse(
+        total_events=len(messages),
+        high_risk=high_risk,
+        medium_risk=medium_risk,
+        low_risk=low_risk,
+        data=messages,
+    )
 
 
-@app.get("/explain")
-def explain_agent_pipeline(user: str = Depends(get_current_user_from_token)) -> Dict[str, Any]:
+@app.get("/explain", response_model=ExplainPipelineResponse)
+def explain_agent_pipeline(user: str = Depends(get_current_user_from_token)) -> ExplainPipelineResponse:
     """
     Same pipeline as /agents, plus natural-language explanation per event (Phase 10.5).
     Now includes geolocation data for attack mapping (fetched in parallel).
@@ -264,10 +271,11 @@ def explain_agent_pipeline(user: str = Depends(get_current_user_from_token)) -> 
         data.append(row)
 
     logger.info(f"Explain complete: {len(data)} events explained with parallel geolocation")
-    return {
-        "total_events": len(data),
-        "data": data,
-    }
+    return ExplainPipelineResponse(
+        total_events=len(data),
+        data=data,
+    )
+
 
 
 class AskRequest(BaseModel):
@@ -275,13 +283,13 @@ class AskRequest(BaseModel):
 
 
 @app.post("/ask")
-def ask_about_events(body: AskRequest) -> Dict[str, str]:
+def ask_about_events(body: AskRequest, user: str = Depends(get_current_user_from_token)) -> Dict[str, str]:
     """
     Lightweight Q&A: uses the highest-risk event from the latest pipeline run.
     """
-    logger.info(f"POST /ask - Question: {body.question}")
+    logger.info(f"POST /ask - User: {user}, Question: {body.question}")
     try:
-        messages = _run_agent_pipeline()
+        messages = _run_agent_pipeline(user)
     except FileNotFoundError as exc:
         logger.error(f"File not found in /ask: {str(exc)}")
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -363,31 +371,20 @@ def generate_key_endpoint(body: AuthRequest):
     }
 
 
-def get_current_user_from_api_key(x_api_key: str = Header(None)):
-    x_api_key = x_api_key.strip() if x_api_key else None
-    if not x_api_key:
-        logger.warning("API request missing API key header")
-        raise HTTPException(status_code=401, detail="Missing or invalid API Key")
-    user = validate_api_key(x_api_key)
-    if not user:
-        logger.warning("API request with invalid API key")
-        raise HTTPException(status_code=401, detail="Missing or invalid API Key")
-    return user
 
-
-@app.post("/api/detect")
-def api_detect(user: str = Depends(get_current_user_from_api_key)):
+@app.post("/api/detect", response_model=ApiDetectResponse)
+def api_detect(user: str = Depends(get_current_user_from_api_key)) -> ApiDetectResponse:
     logger.info(f"POST /api/detect - User: {user}")
     messages = _run_agent_pipeline(user)
-    return {
-        "user": user,
-        "total_events": len(messages),
-        "data": messages
-    }
+    return ApiDetectResponse(
+        user=user,
+        total_events=len(messages),
+        data=messages
+    )
 
 
-@app.post("/api/explain")
-def api_explain(user: str = Depends(get_current_user_from_api_key)):
+@app.post("/api/explain", response_model=ApiExplainResponse)
+def api_explain(user: str = Depends(get_current_user_from_api_key)) -> ApiExplainResponse:
     logger.info(f"POST /api/explain - User: {user}")
     messages = _run_agent_pipeline(user)
     
@@ -415,11 +412,12 @@ def api_explain(user: str = Depends(get_current_user_from_api_key)):
             }
         
         data.append(row)
-    return {
-        "user": user,
-        "total_events": len(data),
-        "data": data
-    }
+    return ApiExplainResponse(
+        user=user,
+        total_events=len(data),
+        data=data
+    )
+
 
 
 @app.post("/api/report")

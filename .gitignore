@@ -40,3 +40,11 @@ dist/
 
 # Database
 *.sqlite3
+
+# Scratch sandbox
+scratch/
+
+# Coverage
+.coverage
+coverage/
+htmlcov/

@@ -1,14 +1,33 @@
+version: '3.8'
+
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: dcoy_backend
     ports:
       - "8000:8000"
-    restart: always
+    environment:
+      - APP_NAME=DcoY
+      - DEBUG=True
+      - SECRET_KEY=dev_secret_key_fallback_32_chars_minimum
+      - LLM_ENABLED=False  # Disabled by default in local Docker; override in .env
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
 
   dashboard:
-    build: ./dashboard
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
     container_name: dcoy_dashboard
     ports:
       - "8501:8501"
-    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - ./dashboard:/app

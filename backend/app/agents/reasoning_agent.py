@@ -8,29 +8,140 @@ No extra Python packages required for the optional LLM path (stdlib HTTP).
 from __future__ import annotations
 
 import json
+import logging
+import socket
+import time
 import urllib.error
 import urllib.request
+from urllib.parse import urlparse
 from typing import Any, Dict, List, Optional
+from app.config import settings
 
-# Local Ollama defaults (user can run: ollama pull llama3)
-OLLAMA_GENERATE_URL = "http://127.0.0.1:11434/api/generate"
-OLLAMA_MODEL = "llama3"
-OLLAMA_TIMEOUT_SEC = 12.0
+logger = logging.getLogger(__name__)
 
+# Circuit breaker state
+CB_STATE = {
+    "state": "CLOSED",  # CLOSED, OPEN, HALF-OPEN
+    "consecutive_failures": 0,
+    "last_state_change": 0.0,
+    "is_healthy": None,
+    "last_health_check": 0.0
+}
+
+# Prompt/response cache for successful LLM generation
+RESPONSE_CACHE: Dict[str, str] = {}
+
+def _check_socket_reachable(host_url: str, timeout_ms: int = 150) -> bool:
+    """Helper checking TCP socket reachability on target LLM model port."""
+    try:
+        parsed = urlparse(host_url)
+        hostname = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 11434
+        
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(timeout_ms / 1000.0)
+        result = sock.connect_ex((hostname, port))
+        sock.close()
+        return result == 0
+    except Exception:
+        return False
+
+def _handle_llm_failure():
+    """Register failure and evaluate circuit open state."""
+    CB_STATE["consecutive_failures"] += 1
+    CB_STATE["is_healthy"] = False
+    CB_STATE["last_health_check"] = time.time()
+    
+    logger.warning(
+        f"LLM failure registered. Failures: {CB_STATE['consecutive_failures']}/{settings.LLM_FAILURE_THRESHOLD}"
+    )
+    
+    if CB_STATE["consecutive_failures"] >= settings.LLM_FAILURE_THRESHOLD:
+        if CB_STATE["state"] != "OPEN":
+            logger.error(
+                f"LLM failure threshold reached. Opening circuit breaker. Cooldown retry active for {settings.LLM_RETRY_INTERVAL} seconds."
+            )
+            CB_STATE["state"] = "OPEN"
+            CB_STATE["last_state_change"] = time.time()
+
+def _handle_llm_success():
+    """Register success and close the circuit if it was open/half-open."""
+    CB_STATE["consecutive_failures"] = 0
+    CB_STATE["is_healthy"] = True
+    CB_STATE["last_health_check"] = time.time()
+    
+    if CB_STATE["state"] != "CLOSED":
+        logger.info("LLM connection succeeded. Closing circuit breaker.")
+        CB_STATE["state"] = "CLOSED"
+        CB_STATE["last_state_change"] = time.time()
+
+def is_llm_available() -> bool:
+    """Evaluates availability state of local Ollama using cached health status and circuit breaker."""
+    if not settings.LLM_ENABLED:
+        return False
+        
+    now = time.time()
+    
+    # 1. Circuit Breaker state validation
+    if CB_STATE["state"] == "OPEN":
+        if now - CB_STATE["last_state_change"] > settings.LLM_RETRY_INTERVAL:
+            logger.info("Circuit breaker cooldown retry interval elapsed. Transitioning to HALF-OPEN.")
+            CB_STATE["state"] = "HALF-OPEN"
+            CB_STATE["last_state_change"] = now
+        else:
+            return False
+            
+    # 2. Cached Health state check
+    if CB_STATE["is_healthy"] is not None:
+        if now - CB_STATE["last_health_check"] < settings.LLM_HEALTH_CHECK_INTERVAL:
+            return CB_STATE["is_healthy"]
+            
+    # 3. Perform Fast Health Probe
+    logger.info("Performing quick Ollama health check...")
+    healthy = _check_socket_reachable(settings.LLM_HOST, timeout_ms=150)
+    
+    CB_STATE["is_healthy"] = healthy
+    CB_STATE["last_health_check"] = now
+    
+    if healthy:
+        logger.info("Ollama service verified as AVAILABLE.")
+        if CB_STATE["state"] == "HALF-OPEN":
+            logger.info("Ollama is available under HALF-OPEN. Resetting circuit breaker to CLOSED.")
+            CB_STATE["state"] = "CLOSED"
+            CB_STATE["consecutive_failures"] = 0
+            CB_STATE["last_state_change"] = now
+    else:
+        logger.warning("Ollama health check FAILED (Ollama service unavailable).")
+        _handle_llm_failure()
+        
+    return healthy
+
+def _get_cache_key(message: Dict[str, Any]) -> str:
+    """Build signature hash based on log details for response caching."""
+    ip = message.get("ip", "unknown")
+    event_type = message.get("event_type", "normal")
+    risk_score = message.get("risk_score", 0.0)
+    user = message.get("user", "default")
+    return f"{ip}:{event_type}:{risk_score}:{user}"
 
 def _template_explanation(message: Dict[str, Any]) -> str:
-    """Structured fallback when no LLM is reachable (required for demos)."""
-    event_label = str(message.get("event_type", "unknown")).replace("_", " ")
-    risk_level = message.get("risk_level", "unknown")
-    risk_score = message.get("risk_score", 0)
-    action = message.get("response_action_final", "unknown")
-    reason = message.get("strategy_reason", "")
+    """Deterministic structured fallback explanation when LLM is offline."""
+    event_label = str(message.get("event_type", "unknown")).replace("_", " ").upper()
+    risk_level = message.get("risk_level", "unknown").upper()
+    risk_score = message.get("risk_score", 0.0)
+    action = message.get("response_action_final", "unknown").upper()
+    reason = message.get("strategy_reason", "No additional context provided.")
 
-    return f"""This activity is classified as a {risk_level}-risk {event_label}.
-The system assigned a risk score of {risk_score}.
-Based on this, the response action taken was: {action}.
-Reason: {reason}.""".strip()
+    # Confidence evaluation
+    is_anomaly = message.get("details", {}).get("is_anomaly") == 1
+    confidence = "HIGH (ML Outlier)" if is_anomaly else "MEDIUM (Heuristic Match)"
 
+    return (
+        f"**Threat Summary:** Classified as a {risk_level}-risk {event_label} activity.\n"
+        f"**Risk Explanation:** The risk score of {risk_score} was calculated based on log telemetry. {reason}\n"
+        f"**Recommended Action:** Execute mitigation action '{action}'.\n"
+        f"**Detection Confidence:** {confidence}."
+    )
 
 def _ollama_prompt(message: Dict[str, Any]) -> str:
     """Compact prompt so small local models stay on-topic."""
@@ -45,33 +156,53 @@ def _ollama_prompt(message: Dict[str, Any]) -> str:
         f"Strategy summary: {message.get('strategy_reason')}\n"
     )
 
-
 def _try_ollama_explanation(message: Dict[str, Any]) -> Optional[str]:
     """
     Call Ollama's HTTP API if a model is running locally.
     Returns None on any failure (network, wrong model, timeout).
     """
+    cache_key = _get_cache_key(message)
+    if cache_key in RESPONSE_CACHE:
+        logger.info(f"Response cache hit for key: {cache_key}")
+        return RESPONSE_CACHE[cache_key]
+
+    if not is_llm_available():
+        logger.info("LLM is unavailable or circuit is open. Falling back to template immediately.")
+        return None
+
     payload = json.dumps(
         {
-            "model": OLLAMA_MODEL,
+            "model": settings.LLM_MODEL,
             "prompt": _ollama_prompt(message),
             "stream": False,
         }
     ).encode("utf-8")
+    
+    url = f"{settings.LLM_HOST}/api/generate"
     req = urllib.request.Request(
-        OLLAMA_GENERATE_URL,
+        url,
         data=payload,
         headers={"Content-Type": "application/json"},
         method="POST",
     )
+    
     try:
-        with urllib.request.urlopen(req, timeout=OLLAMA_TIMEOUT_SEC) as resp:
+        logger.info(f"Sending prompt to Ollama model '{settings.LLM_MODEL}' at {url}...")
+        with urllib.request.urlopen(req, timeout=settings.LLM_TIMEOUT) as resp:
             body = json.loads(resp.read().decode("utf-8"))
+            
         text = (body.get("response") or "").strip()
-        return text if text else None
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
+        if text:
+            RESPONSE_CACHE[cache_key] = text
+            _handle_llm_success()
+            return text
+        else:
+            logger.warning("Empty response returned from Ollama service.")
+            return None
+    except Exception as e:
+        logger.warning(f"Ollama request failed: {type(e).__name__} (Details: {str(e)})")
+        _handle_llm_failure()
         return None
-
 
 def generate_explanation(message: Dict[str, Any], allow_llm: bool = True) -> str:
     """
@@ -80,7 +211,7 @@ def generate_explanation(message: Dict[str, Any], allow_llm: bool = True) -> str
     Prefer a local Llama 3 via Ollama when available; otherwise template text.
     Set allow_llm=False for latency-sensitive bulk endpoints.
     """
-    if allow_llm:
+    if allow_llm and settings.LLM_ENABLED:
         try:
             llm_text = _try_ollama_explanation(message)
             if llm_text:
@@ -88,7 +219,6 @@ def generate_explanation(message: Dict[str, Any], allow_llm: bool = True) -> str
         except Exception:
             pass
     return _template_explanation(message)
-
 
 def answer_question(question: str, messages: List[Dict[str, Any]]) -> str:
     """
@@ -107,6 +237,6 @@ def answer_question(question: str, messages: List[Dict[str, Any]]) -> str:
     if any(word in q for word in ("why", "block", "blocked", "happen", "explain")):
         return (
             f"Regarding your question: {question.strip()!r}. "
-            f"The strongest signal right now is from {ip}. {base}"
+            f"The strongest signal right now is from {ip}.\n\n{base}"
         )
-    return f"Summary for the highest-risk event ({ip}): {base}"
+    return f"Summary for the highest-risk event ({ip}):\n\n{base}"

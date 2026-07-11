@@ -5,6 +5,11 @@ Run this from the project root directory to verify everything is configured corr
 """
 
 import sys
+if sys.platform == "win32":
+    try:
+        getattr(sys.stdout, "reconfigure")(encoding="utf-8")
+    except Exception:
+        pass
 import requests
 import subprocess
 from pathlib import Path
@@ -63,19 +68,26 @@ def check_backend_endpoints():
 def check_streamlit_config():
     """Check if Streamlit dashboard is configured correctly."""
     dashboard_path = Path("dashboard/app.py")
+    constants_path = Path("dashboard/utils/constants.py")
     
     if not dashboard_path.exists():
         return False, "dashboard/app.py not found"
     
     try:
+        if constants_path.exists():
+            with open(constants_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                if "BACKEND_URLS" in content and "http://127.0.0.1:8000" in content:
+                    return True, "BACKEND_URLS configured correctly in constants.py"
+                    
         with open(dashboard_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            if "API_BASE" in content and "http://127.0.0.1:8000" in content:
+            if ("API_BASE" in content and "http://127.0.0.1:8000" in content) or "find_working_backend" in content:
                 return True, "API_BASE configured correctly"
             else:
                 return False, "API_BASE not properly configured"
     except Exception as e:
-        return False, f"Error reading file: {str(e)}"
+        return False, f"Error reading config: {str(e)}"
 
 def check_backend_config():
     """Check if FastAPI backend is configured correctly."""
