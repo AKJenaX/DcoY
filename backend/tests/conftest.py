@@ -1,5 +1,9 @@
+import os
 import sys
 from pathlib import Path
+
+# Ensure safe defaults for testing environment before app imports
+os.environ.setdefault("DEBUG", "True")
 
 # Add backend directory to path
 backend_path = Path(__file__).resolve().parent.parent

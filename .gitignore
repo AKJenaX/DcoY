@@ -7,6 +7,9 @@ env/
 .env
 .env.*
 
+# Keep the template
+!.env.example
+
 # Python
 __pycache__/
 *.py[cod]
