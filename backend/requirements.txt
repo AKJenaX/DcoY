@@ -8,3 +8,4 @@ reportlab
 python-jose
 passlib[bcrypt]
 requests
+sqlalchemy>=2.0
