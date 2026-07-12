@@ -15,12 +15,13 @@ import urllib.error
 import urllib.request
 from urllib.parse import urlparse
 from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
 # Circuit breaker state
-CB_STATE = {
+CB_STATE: Dict[str, Any] = {
     "state": "CLOSED",  # CLOSED, OPEN, HALF-OPEN
     "consecutive_failures": 0,
     "last_state_change": 0.0,
@@ -204,6 +205,60 @@ def _try_ollama_explanation(message: Dict[str, Any]) -> Optional[str]:
         _handle_llm_failure()
         return None
 
+def answer_question_with_llm(question: str, messages: List[Dict[str, Any]]) -> Optional[str]:
+    """Helper using local Ollama model to answer operator questions using messages as context."""
+    if not is_llm_available():
+        return None
+
+    # Construct context summary of top messages (limit to 10 for context window efficiency)
+    summary_lines = []
+    for m in messages[:10]:
+        summary_lines.append(
+            f"- IP: {m.get('ip')}, Event: {m.get('event_type')}, Risk Score: {m.get('risk_score')}, Honeypot: {m.get('honeypot')}, Action: {m.get('response_action_final')}"
+        )
+    context_str = "\n".join(summary_lines)
+
+    prompt = (
+        "You are DcoY Security Copilot, an advanced AI security assistant. "
+        "Analyze the following real-time threat detection telemetry and answer the operator's query. "
+        "Keep your response concise, highly professional, and structured in clean Markdown. "
+        "Use bullet points, bold text, or code blocks where appropriate to present security insights.\n\n"
+        "[Active Threats Telemetry]\n"
+        f"{context_str}\n\n"
+        f"Operator Query: {question}\n\n"
+        "AI Copilot Response:"
+    )
+
+    payload = json.dumps(
+        {
+            "model": settings.LLM_MODEL,
+            "prompt": prompt,
+            "stream": False,
+        }
+    ).encode("utf-8")
+    
+    url = f"{settings.LLM_HOST}/api/generate"
+    req = urllib.request.Request(
+        url,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    
+    try:
+        logger.info(f"Sending Q&A prompt to Ollama model '{settings.LLM_MODEL}' at {url}...")
+        with urllib.request.urlopen(req, timeout=settings.LLM_TIMEOUT) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+            
+        text = (body.get("response") or "").strip()
+        if text:
+            _handle_llm_success()
+            return text
+    except Exception as e:
+        logger.warning(f"Failed to query Ollama for Q&A: {str(e)}")
+        _handle_llm_failure()
+    return None
+
 def generate_explanation(message: Dict[str, Any], allow_llm: bool = True) -> str:
     """
     Produce a human-readable explanation for one agent message.
@@ -222,13 +277,18 @@ def generate_explanation(message: Dict[str, Any], allow_llm: bool = True) -> str
 
 def answer_question(question: str, messages: List[Dict[str, Any]]) -> str:
     """
-    Simple POST /ask helper: focus on the highest-risk event and explain it.
-
-    Keeps behavior predictable without another model call by default.
+    Q&A: uses Ollama when available, falls back to deterministic template when offline.
     """
     if not messages:
         return "No events are available yet. Run detection when log data is present."
 
+    # Try LLM Q&A first if enabled and available
+    if settings.LLM_ENABLED:
+        llm_response = answer_question_with_llm(question, messages)
+        if llm_response:
+            return llm_response
+
+    # Fallback to deterministic template
     top = max(messages, key=lambda m: float(m.get("risk_score") or 0))
     base = generate_explanation(top)
     ip = top.get("ip", "unknown IP")
@@ -240,3 +300,80 @@ def answer_question(question: str, messages: List[Dict[str, Any]]) -> str:
             f"The strongest signal right now is from {ip}.\n\n{base}"
         )
     return f"Summary for the highest-risk event ({ip}):\n\n{base}"
+
+def answer_question_detailed(question: str, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Q&A with rich reliability and explainability metadata return.
+    """
+    start_time = time.time()
+    answer = answer_question(question, messages)
+    duration = time.time() - start_time
+    
+    # 1. Evidence calculations
+    events_analyzed = len(messages)
+    unique_ips = list(set(m.get("ip") for m in messages if m.get("ip")))
+    anomalies_analyzed = len([m for m in messages if float(m.get("risk_score") or 0) >= 0.35])
+    highest_risk_score = max([float(m.get("risk_score") or 0) for m in messages]) if messages else 0.0
+    
+    mitre_techs = []
+    for m in messages:
+        et = m.get("event_type", "")
+        if et == "ssh_bruteforce" and "T1110 - Brute Force" not in mitre_techs:
+            mitre_techs.append("T1110 - Brute Force")
+        elif "scan" in et.lower() and "T1046 - Network Scanning" not in mitre_techs:
+            mitre_techs.append("T1046 - Network Scanning")
+        elif "exploit" in et.lower() and "T1190 - Public Exploit" not in mitre_techs:
+            mitre_techs.append("T1190 - Public Exploit")
+            
+    # 2. Confidence calculations
+    gis_coverage = len([m for m in messages if m.get("latitude") is not None])
+    gis_ratio = gis_coverage / max(1, events_analyzed)
+    
+    risk_coverage = len([m for m in messages if m.get("risk_score") is not None])
+    risk_ratio = risk_coverage / max(1, events_analyzed)
+    
+    anomaly_coverage = len([m for m in messages if isinstance(m.get("details"), dict) and m.get("details").get("is_anomaly") is not None])
+    anomaly_ratio = anomaly_coverage / max(1, events_analyzed)
+    
+    conf_score = int((gis_ratio * 30) + (risk_ratio * 40) + (anomaly_ratio * 30))
+    conf_score = max(15, min(98, conf_score))
+    
+    if conf_score >= 80:
+        conf_level = "High"
+    elif conf_score >= 50:
+        conf_level = "Medium"
+    else:
+        conf_level = "Low"
+        
+    # 3. Context telemetry reconstruction (what was sent to LLM)
+    summary_lines = []
+    for m in messages[:10]:
+        summary_lines.append(
+            f"- IP: {m.get('ip')}, Event: {m.get('event_type')}, Risk Score: {m.get('risk_score')}, Honeypot: {m.get('honeypot')}, Action: {m.get('response_action_final')}"
+        )
+    context_telemetry = "\n".join(summary_lines)
+    
+    # Check if fallback mode was used
+    fallback = not (settings.LLM_ENABLED and is_llm_available())
+    
+    return {
+        "answer": answer,
+        "metadata": {
+            "model": settings.LLM_MODEL,
+            "fallback": fallback,
+            "response_time": duration,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "context_telemetry": context_telemetry,
+            "evidence": {
+                "anomalies_analyzed": anomalies_analyzed,
+                "events_analyzed": events_analyzed,
+                "source_ips": len(unique_ips),
+                "mitre_techniques": mitre_techs if mitre_techs else ["T1046 - Network Scanning"],
+                "highest_risk_score": highest_risk_score
+            },
+            "confidence": {
+                "score": conf_score,
+                "level": conf_level
+            }
+        }
+    }

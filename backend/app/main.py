@@ -1,7 +1,7 @@
 """FastAPI application entry point for DcoY."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from app.agents import deception_agent, detection_agent, response_agent
-from app.agents.reasoning_agent import answer_question, generate_explanation
+from app.agents.reasoning_agent import answer_question, generate_explanation, answer_question_detailed
 from app.config import settings
 from app.models import (
     IngestPayload,
@@ -91,12 +91,17 @@ def get_current_user_from_token(authorization: str = Header(None)) -> str:
     return user
 
 
-def get_current_user_from_api_key(x_api_key: str = Header(None)):
-    x_api_key = x_api_key.strip() if x_api_key else None
+def get_current_user_from_api_key(x_api_key: Optional[str] = Header(None)):
     if not x_api_key:
         logger.warning("API request missing API key header")
         raise HTTPException(status_code=401, detail="Missing or invalid API Key")
-    user = validate_api_key(x_api_key)
+    
+    clean_key = x_api_key.strip()
+    if not clean_key:
+        logger.warning("API request missing API key header")
+        raise HTTPException(status_code=401, detail="Missing or invalid API Key")
+        
+    user = validate_api_key(clean_key)
     if not user:
         logger.warning("API request with invalid API key")
         raise HTTPException(status_code=401, detail="Missing or invalid API Key")
@@ -283,7 +288,7 @@ class AskRequest(BaseModel):
 
 
 @app.post("/ask")
-def ask_about_events(body: AskRequest, user: str = Depends(get_current_user_from_token)) -> Dict[str, str]:
+def ask_about_events(body: AskRequest, user: str = Depends(get_current_user_from_token)) -> Dict[str, Any]:
     """
     Lightweight Q&A: uses the highest-risk event from the latest pipeline run.
     """
@@ -294,9 +299,9 @@ def ask_about_events(body: AskRequest, user: str = Depends(get_current_user_from
         logger.error(f"File not found in /ask: {str(exc)}")
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    answer = answer_question(body.question, messages)
+    res = answer_question_detailed(body.question, messages)
     logger.debug(f"Answer generated for question")
-    return {"answer": answer}
+    return res
 
 import io
 

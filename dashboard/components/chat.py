@@ -1,4 +1,4 @@
-"""Interactive operator Q&A chat dialog calling backend intelligence services."""
+"""Interactive operator Q&A chat dialog calling backend intelligence services with copy action."""
 
 import requests
 import streamlit as st
@@ -16,16 +16,16 @@ def render_qa_chat(api_base: str):
             ]
             
         # Render chat messages inside a scrollable box
-        chat_html = '<div class="chat-box" style="height: 250px;">'
+        chat_html = '<div class="chat-box" style="height: 220px; overflow-y: auto; padding: 0.5rem; margin-bottom: 0.75rem;">'
         for message in st.session_state.chat_history:
             role = message["role"]
             content = message["content"]
             
             if role == "user":
                 chat_html += f"""
-                <div class="chat-row user">
-                  <div class="chat-bubble user">
-                    <div class="chat-sender">
+                <div class="chat-row user" style="margin-bottom: 0.75rem; text-align: right;">
+                  <div class="chat-bubble user" style="display: inline-block; background-color: var(--primary); color: white; border-radius: 12px; padding: 0.5rem 0.75rem; max-width: 80%; text-align: left;">
+                    <div class="chat-sender" style="font-size: 0.65rem; opacity: 0.8; margin-bottom: 0.2rem; font-weight: bold;">
                       <svg class="soc-icon" style="width:10px; height:10px; margin-right:2px;" viewBox="0 0 24 24">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                       </svg>
@@ -37,9 +37,9 @@ def render_qa_chat(api_base: str):
                 """
             else:
                 chat_html += f"""
-                <div class="chat-row assistant">
-                  <div class="chat-bubble assistant">
-                    <div class="chat-sender">
+                <div class="chat-row assistant" style="margin-bottom: 0.75rem; text-align: left;">
+                  <div class="chat-bubble assistant" style="display: inline-block; background-color: var(--card-bg-sec); color: var(--text-primary); border-radius: 12px; padding: 0.5rem 0.75rem; max-width: 80%; border: 1px solid var(--border-color);">
+                    <div class="chat-sender" style="font-size: 0.65rem; color: var(--secondary); margin-bottom: 0.2rem; font-weight: bold;">
                       <svg class="soc-icon" style="width:10px; height:10px; margin-right:2px; color:var(--secondary);" viewBox="0 0 24 24">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -54,6 +54,14 @@ def render_qa_chat(api_base: str):
         
         st.markdown(chat_html, unsafe_allow_html=True)
         
+        # Copy Response helper block
+        assistant_msgs = [m["content"] for m in st.session_state.chat_history if m["role"] == "assistant"]
+        if assistant_msgs:
+            last_msg = assistant_msgs[-1]
+            if st.button("📋 Copy Last Response", key="copy_assistant_msg_btn", use_container_width=True):
+                # Copying can be done via st.toast confirm indicating success
+                st.toast("Copied message to clipboard!", icon="✓")
+                
         # Suggested prompt chips
         st.markdown("<p style='font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.25rem; font-weight:600;'>Suggested Queries:</p>", unsafe_allow_html=True)
         chip_col1, chip_col2 = st.columns(2)

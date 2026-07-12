@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 feedback_db = {}
 
@@ -17,7 +17,7 @@ def update_feedback(user: str, ip: str, risk_level: str):
     if risk_level == "high":
         feedback_db[user][ip]["high_risk_count"] += 1
         
-    feedback_db[user][ip]["last_seen"] = datetime.utcnow().isoformat()
+    feedback_db[user][ip]["last_seen"] = datetime.now(timezone.utc).isoformat()
 
 def get_feedback(user: str, ip: str) -> dict:
     if user not in feedback_db:

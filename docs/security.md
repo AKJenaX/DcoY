@@ -12,6 +12,10 @@ DcoY implements a secure multi-layered authentication system to protect telemetr
   * Session endpoints (`/detect`, `/agents`, `/explain`, `/ask`, `/report`) require a JSON Web Token (JWT) transmitted via the HTTP `Authorization: Bearer <TOKEN>` header.
   * Tokens are cryptographically signed using the **HS256** algorithm.
   * Default fallback sessions (e.g. `"default_user"`) have been removed. Any unauthenticated or invalid token query returns a strict `401 Unauthorized` response.
+* **Dashboard Session Persistence & Logout**:
+  * The dashboard securely persists the authenticated operator's JWT access token locally in a location-independent file at `.session_token` (resolved deterministically relative to the project root using Python's `pathlib.Path`).
+  * On page load or refresh, the dashboard attempts to restore authentication using this persisted token to avoid session loss.
+  * **Operator Logout**: Clicking the "Log Out" button in the Operator Panel clears the active in-memory session token (`auth_token` and `current_user` session state variables), deletes the persisted `.session_token` file, and triggers a clean redirect back to the login screen with a confirmation success toast.
 * **API Key Ingestion Authentication**:
   * Machine-to-machine integrations (`/api/ingest` and `/api/capture`) are protected via high-entropy API keys passed in the `X-API-Key` HTTP header.
   * API keys are dynamically generated on-demand for registered operator profiles via the `/generate-api-key` endpoint.

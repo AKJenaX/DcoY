@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from app.utils.auth_utils import hash_password, verify_password
 
 users_db = {}
@@ -9,7 +9,7 @@ def create_user(username: str, password: str) -> bool:
         return False
     users_db[username] = {
         "password": hash_password(password),
-        "created_at": datetime.utcnow().isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat()
     }
     return True
 

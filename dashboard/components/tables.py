@@ -1,8 +1,7 @@
-"""Structured logs grids, lists, and expanders displaying threat data."""
-
-import pandas as pd
 import streamlit as st
 from typing import Any, Dict, List
+from dashboard.utils.constants import LOW_RISK_THRESHOLD, HIGH_RISK_THRESHOLD
+from dashboard.utils.formatting import extract_event_timestamp
 
 def render_high_risk_threats(explain_rows: List[Dict[str, Any]]):
     """Renders the alert logs highlighting top-risk events."""
@@ -27,7 +26,7 @@ def render_high_risk_threats(explain_rows: List[Dict[str, Any]]):
         """
         for row in high_risk:
             score = row.get("risk_score", 0.0)
-            score_color = "var(--danger)" if score >= 0.8 else "var(--warning)"
+            score_color = "var(--danger)" if score >= HIGH_RISK_THRESHOLD else ("var(--warning)" if score >= LOW_RISK_THRESHOLD else "var(--success)")
             ip = row.get("ip", "unknown")
             avatar_char = ip.split(".")[-1][:2] if "." in ip else "IP"
             
@@ -71,11 +70,11 @@ def render_detailed_logs(detect_rows: List[Dict[str, Any]], explain_rows: List[D
             for idx, row in enumerate(filtered_source):
                 level = row.get("risk_level", "low").upper()
                 ip = row.get("ip", "unknown")
-                timestamp = row.get("timestamp", "00:00:00")
+                details = row.get("details", {}) if isinstance(row.get("details"), dict) else {}
+                timestamp = extract_event_timestamp(row)
                 if "T" in timestamp:
                     timestamp = timestamp.split("T")[-1][:8]
-                    
-                details = row.get("details", {})
+
                 failed_logins = details.get("failed_logins", row.get("failed_logins", 0))
                 port_attempts = details.get("port_attempts", row.get("port_attempts", 0))
                 

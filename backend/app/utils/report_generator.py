@@ -1,5 +1,5 @@
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
@@ -12,7 +12,7 @@ def generate_report(messages: list) -> bytes:
     # 1. TITLE
     story.append(Paragraph("DcoY Cyber Defense Report", styles['Title']))
     story.append(Spacer(1, 10))
-    story.append(Paragraph(f"Generated At: {datetime.utcnow().isoformat()}", styles['Normal']))
+    story.append(Paragraph(f"Generated At: {datetime.now(timezone.utc).isoformat()}", styles['Normal']))
     story.append(Spacer(1, 10))
 
     # Calculate summaries
