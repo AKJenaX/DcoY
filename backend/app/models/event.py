@@ -1,7 +1,7 @@
 """Pydantic V2 data models for request/response validation and typing."""
 
 from pydantic import BaseModel, Field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 
 
 class EventModel(BaseModel):
@@ -75,7 +75,7 @@ class DetectResponse(BaseModel):
     anomalies_detected: int
     attack_summary: Dict[str, int]
     response_summary: Dict[str, int]
-    data: List[EventModel]
+    data: Sequence[EventModel]
 
 
 class AgentPipelineResponse(BaseModel):
@@ -84,13 +84,13 @@ class AgentPipelineResponse(BaseModel):
     high_risk: int
     medium_risk: int
     low_risk: int
-    data: List[AgentMessageModel]
+    data: Sequence[AgentMessageModel]
 
 
 class ExplainPipelineResponse(BaseModel):
     """Response schema for explainable AI multi-agent pipelines."""
     total_events: int
-    data: List[AgentMessageModel]
+    data: Sequence[AgentMessageModel]
 
 
 class IngestResponse(BaseModel):
@@ -104,11 +104,11 @@ class ApiDetectResponse(BaseModel):
     """Response schema for custom authenticated API detection endpoint."""
     user: str
     total_events: int
-    data: List[AgentMessageModel]
+    data: Sequence[AgentMessageModel]
 
 
 class ApiExplainResponse(BaseModel):
     """Response schema for custom authenticated API explanation endpoint."""
     user: str
     total_events: int
-    data: List[AgentMessageModel]
+    data: Sequence[AgentMessageModel]

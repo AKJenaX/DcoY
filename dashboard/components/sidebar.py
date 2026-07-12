@@ -66,6 +66,12 @@ def render_sidebar(api_base: str):
         st.markdown(
             f"""
             <p style="font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.5rem; padding-left: 0.5rem;">MANAGEMENT</p>
+            <a href="?page=executive" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "executive" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Executive Intelligence
+              </div>
+            </a>
             <a href="?page=investigations" target="_self" style="text-decoration:none; color:inherit;">
               <div class="sidebar-menu-item {"active" if current_page == "investigations" else ""}">
                 <svg class="soc-icon" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>

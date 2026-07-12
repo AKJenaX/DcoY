@@ -43,6 +43,10 @@ dist/
 
 # Database
 *.sqlite3
+*.db
+
+# Local dashboard session
+dashboard/.session_token
 
 # Scratch sandbox
 scratch/

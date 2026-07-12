@@ -6,6 +6,8 @@ import streamlit as st
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from dashboard.components.rule_quality import render_rule_quality_panel, render_validation_errors, render_ai_validation_assistant
+
 
 def render_detection_rules_page(
     explain_rows: List[Dict[str, Any]],
@@ -156,6 +158,9 @@ def render_detection_rules_page(
         )
     st.markdown("<br/>", unsafe_allow_html=True)
 
+    # ─── Rule Quality & Coverage Dashboard ──────────────────────────────────
+    render_rule_quality_panel(api_base)
+
     # ─── 3. Main Split Layout ───────────────────────────────────────────────
     col_left, col_center = st.columns([3, 7])
 
@@ -292,29 +297,49 @@ def render_detection_rules_page(
                 e_response = st.text_area("Recommended Response Actions", placeholder="Block source subnet interfaces via edge firewalls...")
                 e_tags = st.text_input("Rule Tags (comma separated)", placeholder="SSH, Bruteforce, Custom")
 
-                if st.button("💾 Save Rule to Signature Core", use_container_width=True, key="save_new_rule_btn"):
-                    payload = {
-                        "name": e_name,
-                        "description": e_desc,
-                        "severity": e_sev,
-                        "category": e_cat,
-                        "mitre_technique": e_mitre,
-                        "detection_logic": e_logic,
-                        "threshold": e_threshold,
-                        "time_window": e_time_window,
-                        "recommended_response": e_response,
-                        "tags": e_tags
-                    }
-                    try:
-                        r_save = requests.post(f"{api_base}/api/rules", json=payload, headers=headers, timeout=10, verify=False)
-                        if r_save.status_code == 200:
-                            st.session_state.selected_rule_id = r_save.json()["id"]
-                            st.toast("Detection rule saved successfully!", icon="✓")
-                            st.rerun()
-                        else:
-                            st.error(f"Failed to save rule: {r_save.text}")
-                    except Exception as e:
-                        st.error(f"Error saving: {str(e)}")
+                v_col1, v_col2 = st.columns(2)
+                with v_col1:
+                    if st.button("✅ Validate Rule", use_container_width=True, key="validate_new_rule_btn"):
+                        v_payload = {
+                            "name": e_name, "description": e_desc, "severity": e_sev,
+                            "category": e_cat, "mitre_technique": e_mitre,
+                            "detection_logic": e_logic, "threshold": e_threshold, "time_window": e_time_window
+                        }
+                        try:
+                            r_val = requests.post(f"{api_base}/api/rules/validate", json=v_payload, headers=headers, timeout=10, verify=False)
+                            if r_val.status_code == 200:
+                                val_result = r_val.json()
+                                if val_result["valid"]:
+                                    st.success("Rule validation passed — no errors detected.")
+                                else:
+                                    render_validation_errors(val_result["errors"])
+                                    render_ai_validation_assistant(v_payload, val_result["errors"])
+                        except Exception as e:
+                            st.error(f"Validation error: {str(e)}")
+                with v_col2:
+                    if st.button("💾 Save Rule to Signature Core", use_container_width=True, key="save_new_rule_btn"):
+                        payload = {
+                            "name": e_name,
+                            "description": e_desc,
+                            "severity": e_sev,
+                            "category": e_cat,
+                            "mitre_technique": e_mitre,
+                            "detection_logic": e_logic,
+                            "threshold": e_threshold,
+                            "time_window": e_time_window,
+                            "recommended_response": e_response,
+                            "tags": e_tags
+                        }
+                        try:
+                            r_save = requests.post(f"{api_base}/api/rules", json=payload, headers=headers, timeout=10, verify=False)
+                            if r_save.status_code == 200:
+                                st.session_state.selected_rule_id = r_save.json()["id"]
+                                st.toast("Detection rule saved successfully!", icon="✓")
+                                st.rerun()
+                            else:
+                                st.error(f"Failed to save rule: {r_save.text}")
+                        except Exception as e:
+                            st.error(f"Error saving: {str(e)}")
 
             elif rule_details:
                 # Mode: Edit Existing Rule
@@ -475,6 +500,45 @@ def render_detection_rules_page(
                                 st.toast("Simulation finished!", icon="✓")
                             else:
                                 st.error(f"Failed: {r_sim.text}")
+                        except Exception as e:
+                            st.error(f"Error: {str(e)}")
+
+                b_col1, b_col2 = st.columns(2)
+                with b_col1:
+                    if st.button("✅ Validate Rule Config", use_container_width=True, key="validate_edit_rule_btn"):
+                        v_payload = {
+                            "name": e_name, "description": e_desc, "severity": e_sev,
+                            "category": e_cat, "mitre_technique": e_mitre,
+                            "detection_logic": e_logic, "threshold": e_threshold, "time_window": e_time_window
+                        }
+                        try:
+                            r_val = requests.post(f"{api_base}/api/rules/validate", json=v_payload, headers=headers, timeout=10, verify=False)
+                            if r_val.status_code == 200:
+                                val_result = r_val.json()
+                                if val_result["valid"]:
+                                    st.success("Rule validation passed — no errors detected.")
+                                else:
+                                    render_validation_errors(val_result["errors"])
+                                    render_ai_validation_assistant(v_payload, val_result["errors"])
+                        except Exception as e:
+                            st.error(f"Validation error: {str(e)}")
+                with b_col2:
+                    if st.button("⚡ Benchmark Rule Performance", use_container_width=True, key="benchmark_rule_btn"):
+                        try:
+                            r_bench = requests.post(f"{api_base}/api/rules/{sel_rid}/benchmark", headers=headers, timeout=15, verify=False)
+                            if r_bench.status_code == 200:
+                                bench = r_bench.json()
+                                st.info(
+                                    f"**[BENCHMARK RESULTS]**\n\n"
+                                    f"- **Events Scanned:** `{bench['total_events_scanned']}`\n"
+                                    f"- **Matching Events:** `{bench['matching_events']}`\n"
+                                    f"- **Execution Time:** `{bench['execution_time_ms']:.2f}ms`\n"
+                                    f"- **Detection Coverage:** `{bench['detection_coverage'] * 100:.1f}%`\n"
+                                    f"- **Production Impact:** `{bench['estimated_production_impact']}`\n"
+                                    f"- **Cache State:** `{bench['cache_state']}`"
+                                )
+                            else:
+                                st.error(f"Benchmark failed: {r_bench.text}")
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
 

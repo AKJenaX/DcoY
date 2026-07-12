@@ -4,6 +4,7 @@ import json
 import time
 from typing import Any, Dict, List, Tuple
 from app.models.detection_rule import DBDetectionRule
+from app.services.rule_metrics import RuleMetrics
 
 
 class RuleEngine:
@@ -12,6 +13,7 @@ class RuleEngine:
     def __init__(self) -> None:
         # Cache for parsed JSON rule criteria
         self._compiled_cache: Dict[int, Dict[str, Any]] = {}
+        self.metrics = RuleMetrics()
 
     def compile_rule(self, rule: DBDetectionRule) -> Dict[str, Any]:
         """Parses and caches the JSON criteria for the specified rule."""
@@ -67,13 +69,56 @@ class RuleEngine:
         Returns:
             Tuple of (Matched Events, Execution Time (ms), Coverage Rate (0.0 - 1.0))
         """
+        rule_any: Any = rule
+        r_id = int(rule_any.id)
+        cache_hit = r_id in self._compiled_cache
+
         start_time = time.perf_counter()
+        failed = False
         matched = []
         
-        for event in telemetry:
-            if self.evaluate_event(rule, event):
-                matched.append(event)
+        try:
+            for event in telemetry:
+                if self.evaluate_event(rule, event):
+                    matched.append(event)
+        except Exception:
+            failed = True
                 
         duration_ms = (time.perf_counter() - start_time) * 1000.0
         coverage = len(matched) / max(1, len(telemetry))
+
+        # Record metrics
+        self.metrics.record_execution(
+            rule_id=r_id,
+            matched_count=len(matched),
+            duration_ms=duration_ms,
+            cache_hit=cache_hit,
+            failed=failed,
+        )
+
         return matched, duration_ms, coverage
+
+    def benchmark_rule(
+        self,
+        rule: DBDetectionRule,
+        telemetry: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Run a full performance benchmark on a rule against telemetry."""
+        rule_any: Any = rule
+        r_id = int(rule_any.id)
+        total_events = len(telemetry)
+
+        start = time.perf_counter()
+        matched, duration_ms, coverage = self.test_rule(rule, telemetry)
+        end = time.perf_counter()
+
+        return {
+            "rule_id": r_id,
+            "total_events_scanned": total_events,
+            "matching_events": len(matched),
+            "execution_time_ms": round(duration_ms, 2),
+            "wall_time_ms": round((end - start) * 1000, 2),
+            "detection_coverage": round(coverage, 4),
+            "estimated_production_impact": "Low" if len(matched) < 5 else ("Medium" if len(matched) < 20 else "High"),
+            "cache_state": "hit" if r_id in self._compiled_cache else "miss",
+        }

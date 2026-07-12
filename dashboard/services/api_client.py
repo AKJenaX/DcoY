@@ -51,3 +51,21 @@ def fetch_explain_data(url: str) -> Optional[Dict[str, Any]]:
     cache_key = int(time.time() // EXPLAIN_REFRESH_INTERVAL)
     headers = {"Authorization": f"Bearer {st.session_state.auth_token}"} if "auth_token" in st.session_state else {}
     return _fetch_explain_cached(url, cache_key, headers)
+
+
+@st.cache_data(ttl=REFRESH_INTERVAL)
+def _fetch_executive_metrics_cached(url: str, cache_key: int, headers: dict) -> Optional[Dict[str, Any]]:
+    """Perform one authenticated aggregate fetch for the executive dashboard."""
+    try:
+        response = requests.get(f"{url}/api/executive/metrics", headers=headers, timeout=30, verify=False)
+        response.raise_for_status()
+        return response.json()
+    except Exception:
+        return None
+
+
+def fetch_executive_metrics(url: str) -> Optional[Dict[str, Any]]:
+    """Retrieve cached executive command-center metrics from the backend."""
+    cache_key = int(time.time() // REFRESH_INTERVAL)
+    headers = {"Authorization": f"Bearer {st.session_state.auth_token}"} if "auth_token" in st.session_state else {}
+    return _fetch_executive_metrics_cached(url, cache_key, headers)

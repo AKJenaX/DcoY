@@ -794,7 +794,42 @@ def add_analyst_note(
     return {"message": "Analyst note added successfully"}
 
 from app.services.rule_engine import RuleEngine
+from app.services.executive_metrics import build_executive_metrics
 rule_evaluator = RuleEngine()
+
+
+@app.get("/api/executive/metrics")
+def get_executive_metrics(
+    user: str = Depends(check_permission("executive:read")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"GET /api/executive/metrics - User: {user}")
+    messages = _run_agent_pipeline(user)
+
+    ips = [msg.get("ip", "") for msg in messages if msg.get("ip")]
+    locations_map = batch_get_locations(list(set(ips))) if ips else {}
+    enriched_messages: List[Dict[str, Any]] = []
+    for msg in messages:
+        row = dict(msg)
+        ip = row.get("ip", "")
+        row["location"] = locations_map.get(
+            ip,
+            {
+                "ip": ip or "unknown",
+                "lat": None,
+                "lon": None,
+                "country": "Unknown",
+                "city": "Unknown",
+                "region": "Unknown",
+            },
+        )
+        enriched_messages.append(row)
+
+    return build_executive_metrics(
+        db=db,
+        telemetry=enriched_messages,
+        rule_metrics=rule_evaluator.metrics.get_all_metrics(),
+    )
 
 class DetectionRuleCreate(BaseModel):
     name: str
@@ -936,35 +971,36 @@ def get_detection_rule_details(
     if not r:
         raise HTTPException(status_code=404, detail="Rule not found")
         
+    r_any: Any = r
     return {
-        "id": r.id,
-        "name": r.name,
-        "description": r.description,
-        "author": r.author,
-        "version": r.version,
-        "status": r.status,
-        "severity": r.severity,
-        "category": r.category,
-        "mitre_technique": r.mitre_technique,
-        "detection_logic": r.detection_logic,
-        "threshold": r.threshold,
-        "time_window": r.time_window,
-        "recommended_response": r.recommended_response,
-        "tags": r.tags,
+        "id": r_any.id,
+        "name": r_any.name,
+        "description": r_any.description,
+        "author": r_any.author,
+        "version": r_any.version,
+        "status": r_any.status,
+        "severity": r_any.severity,
+        "category": r_any.category,
+        "mitre_technique": r_any.mitre_technique,
+        "detection_logic": r_any.detection_logic,
+        "threshold": r_any.threshold,
+        "time_window": r_any.time_window,
+        "recommended_response": r_any.recommended_response,
+        "tags": r_any.tags,
         "revisions": [
             {
-                "version": rev.version,
-                "name": rev.name,
-                "description": rev.description,
-                "severity": rev.severity,
-                "detection_logic": rev.detection_logic,
-                "threshold": rev.threshold,
-                "time_window": rev.time_window,
-                "recommended_response": rev.recommended_response,
-                "changelog": rev.changelog,
-                "created_at": rev.created_at.isoformat(),
-                "author": rev.author
-            } for rev in sorted(r.revisions, key=lambda x: x.version, reverse=True)
+                "version": getattr(rev, "version"),
+                "name": getattr(rev, "name"),
+                "description": getattr(rev, "description"),
+                "severity": getattr(rev, "severity"),
+                "detection_logic": getattr(rev, "detection_logic"),
+                "threshold": getattr(rev, "threshold"),
+                "time_window": getattr(rev, "time_window"),
+                "recommended_response": getattr(rev, "recommended_response"),
+                "changelog": getattr(rev, "changelog"),
+                "created_at": getattr(rev, "created_at").isoformat(),
+                "author": getattr(rev, "author")
+            } for rev in sorted(r_any.revisions or [], key=lambda x: getattr(x, "version"), reverse=True)
         ]
     }
 
@@ -980,39 +1016,40 @@ def update_detection_rule(
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
         
+    rule_any: Any = rule
     # Apply updates
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
     changelog_str = updates.pop("changelog", "Configuration update")
     
     # Save old configuration as revision before incrementing version
     rev = DBRuleRevision(
-        rule_id=rule.id,
-        version=rule.version,
-        name=rule.name,
-        description=rule.description,
-        severity=rule.severity,
-        detection_logic=rule.detection_logic,
-        threshold=rule.threshold,
-        time_window=rule.time_window,
-        recommended_response=rule.recommended_response,
+        rule_id=rule_any.id,
+        version=rule_any.version,
+        name=rule_any.name,
+        description=rule_any.description,
+        severity=rule_any.severity,
+        detection_logic=rule_any.detection_logic,
+        threshold=rule_any.threshold,
+        time_window=rule_any.time_window,
+        recommended_response=rule_any.recommended_response,
         changelog=changelog_str,
-        author=rule.author
+        author=rule_any.author
     )
     db.add(rev)
     
     # Apply modifications
     for k, v in updates.items():
-        setattr(rule, k, v)
+        setattr(rule_any, k, v)
         
-    rule.version += 1
-    rule.author = user
-    rule.updated_at = datetime.now(timezone.utc)
+    rule_any.version += 1
+    rule_any.author = user
+    rule_any.updated_at = datetime.now(timezone.utc)
     db.commit()
     
     # Invalidate rule engine compilation cache
-    rule_evaluator.clear_cache(rule.id)
+    rule_evaluator.clear_cache(rule_any.id)
     
-    return {"message": "Rule updated successfully", "version": rule.version}
+    return {"message": "Rule updated successfully", "version": rule_any.version}
 
 @app.delete("/api/rules/{rid}")
 def delete_detection_rule(
@@ -1095,19 +1132,114 @@ def revert_detection_rule_revision(
     if not rev:
         raise HTTPException(status_code=404, detail="Revision version not found")
         
+    rule_any: Any = rule
     # Revert rule state
-    rule.name = rev.name
-    rule.description = rev.description
-    rule.severity = rev.severity
-    rule.detection_logic = rev.detection_logic
-    rule.threshold = rev.threshold
-    rule.time_window = rev.time_window
-    rule.recommended_response = rev.recommended_response
-    rule.author = user
-    rule.version += 1
-    rule.updated_at = datetime.now(timezone.utc)
-    
+    rule_any.name = rev.name
+    rule_any.description = rev.description
+    rule_any.severity = rev.severity
+    rule_any.detection_logic = rev.detection_logic
+    rule_any.threshold = rev.threshold
+    rule_any.time_window = rev.time_window
+    rule_any.recommended_response = rev.recommended_response
+    rule_any.author = user
+    rule_any.version += 1
+    rule_any.updated_at = datetime.now(timezone.utc)
+
     db.commit()
-    rule_evaluator.clear_cache(rule.id)
+    rule_evaluator.clear_cache(rule_any.id)
+
+    return {"message": "Rule reverted successfully", "version": rule_any.version}
+
+from app.services.rule_validator import RuleValidator
+rule_validator = RuleValidator()
+
+class RuleValidatePayload(BaseModel):
+    name: str
+    description: str
+    severity: str = "Medium"
+    category: str = "Custom Rules"
+    mitre_technique: Optional[str] = None
+    detection_logic: str = "{}"
+    threshold: int = 5
+    time_window: int = 60
+
+@app.post("/api/rules/validate")
+def validate_rule(
+    body: RuleValidatePayload,
+    user: str = Depends(check_permission("rules:read")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"POST /api/rules/validate - User: {user}")
+    existing_names = [str(getattr(r, "name")) for r in db.query(DBDetectionRule).all()]
+    is_valid, errors = rule_validator.validate(body.model_dump(), existing_names)
+    return {"valid": is_valid, "errors": errors}
+
+@app.get("/api/rules/{rid}/metrics")
+def get_rule_metrics(
+    rid: int,
+    user: str = Depends(check_permission("rules:read"))
+):
+    logger.info(f"GET /api/rules/{rid}/metrics - User: {user}")
+    return rule_evaluator.metrics.get_metrics(rid)
+
+@app.get("/api/rules/metrics/all")
+def get_all_rule_metrics(
+    user: str = Depends(check_permission("rules:read"))
+):
+    logger.info(f"GET /api/rules/metrics/all - User: {user}")
+    return rule_evaluator.metrics.get_all_metrics()
+
+@app.post("/api/rules/{rid}/benchmark")
+def benchmark_rule(
+    rid: int,
+    user: str = Depends(check_permission("rules:read")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"POST /api/rules/{rid}/benchmark - User: {user}")
+    rule = db.query(DBDetectionRule).filter(DBDetectionRule.id == rid).first()
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    telemetry = _run_agent_pipeline(user)
+    return rule_evaluator.benchmark_rule(rule, telemetry)
+
+@app.get("/api/rules/coverage")
+def get_rule_coverage(
+    user: str = Depends(check_permission("rules:read")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"GET /api/rules/coverage - User: {user}")
+    rules = db.query(DBDetectionRule).all()
+    rule_dicts = [
+        {
+            "mitre_technique": getattr(r, "mitre_technique", None),
+            "category": getattr(r, "category", "Custom Rules"),
+            "severity": getattr(r, "severity", "Medium"),
+        }
+        for r in rules
+    ]
+    return rule_evaluator.metrics.get_coverage_stats(rule_dicts)
+
+@app.get("/api/rules/{rid}/health")
+def get_rule_health(
+    rid: int,
+    user: str = Depends(check_permission("rules:read")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"GET /api/rules/{rid}/health - User: {user}")
+    rule = db.query(DBDetectionRule).filter(DBDetectionRule.id == rid).first()
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
     
-    return {"message": "Rule reverted successfully", "version": rule.version}
+    metrics = rule_evaluator.metrics.get_metrics(rid)
+    r: Any = rule
+    return {
+        "rule_id": rid,
+        "name": r.name,
+        "status": r.status,
+        "trigger_count": metrics["trigger_count"],
+        "last_triggered": metrics["last_triggered"],
+        "avg_execution_time_ms": metrics["avg_latency_ms"],
+        "false_positive_estimate": 0.05 if metrics["matches"] > 2 else 0.01,
+        "detection_coverage": metrics["trigger_rate"],
+        "health_score": metrics["health_score"],
+    }

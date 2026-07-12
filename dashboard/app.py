@@ -8,7 +8,7 @@ import streamlit as st
 import urllib3
 from streamlit_autorefresh import st_autorefresh
 
-from dashboard.services.api_client import find_working_backend, fetch_data, fetch_explain_data
+from dashboard.services.api_client import find_working_backend, fetch_data, fetch_explain_data, fetch_executive_metrics
 from dashboard.utils.constants import REFRESH_INTERVAL, SESSION_TOKEN_PATH
 from dashboard.utils.theme import inject_custom_theme
 from dashboard.utils.formatting import format_attack_locations
@@ -23,6 +23,7 @@ from dashboard.components.copilot_intel import render_copilot_page
 from dashboard.components.investigations import render_investigations_page
 from dashboard.components.threat_hunting import render_threat_hunting_page
 from dashboard.components.detection_engineering import render_detection_rules_page
+from dashboard.components.executive_dashboard import render_executive_dashboard_page
 
 # Disable insecure warning for development environment calls
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -58,6 +59,8 @@ api_base, latency_ms = find_working_backend()
 if not api_base:
     st.error("FastAPI Backend not reachable. Ensure the server is running on port 8000.")
     st.stop()
+
+latency_ms = int(latency_ms or 0)
 
 # 1.5 Handle Security Portal Authentication and persistence
 
@@ -156,7 +159,19 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 3. Fetch Data
+# 3. Render Collapsible Sidebar and parse active page view routing
+render_sidebar(api_base)
+page = st.query_params.get("page", "overview")
+
+if page == "executive":
+    executive_metrics = fetch_executive_metrics(api_base)
+    if not executive_metrics:
+        st.warning("Executive metrics could not be loaded from backend.")
+        st.stop()
+    render_executive_dashboard_page(executive_metrics, latency_ms, api_base)
+    st.stop()
+
+# 4. Fetch Data
 data = fetch_data(api_base)
 if not data:
     # Check if this is an auth failure — probe the backend directly
@@ -178,7 +193,7 @@ if not data:
     st.warning("No data returned from backend.")
     st.stop()
 
-# 4. Fetch Explanations (with session caching fallback)
+# 5. Fetch Explanations (with session caching fallback)
 if "last_explain_data" not in st.session_state:
     st.session_state.last_explain_data = None
 
@@ -187,7 +202,7 @@ if fresh_explain_data:
     st.session_state.last_explain_data = fresh_explain_data
 explain_data = st.session_state.last_explain_data or {}
 
-# 5. Extract rows
+# 6. Extract rows
 detect_rows = data.get("data", [])
 explain_rows = explain_data.get("data", [])
 
@@ -199,7 +214,7 @@ active_threats = data.get("anomalies_detected", 0)
 if active_threats > 0:
     st.toast(f"🚨 CRITICAL WARNING: {active_threats} anomalous connections isolated in decoy honeypots!", icon="🚨")
 
-# 5.5 Cache chart data states to prevent redraw blinking on static page queries
+# 6.5 Cache chart data states to prevent redraw blinking on static page queries
 if "last_total_events" not in st.session_state:
     st.session_state.last_total_events = 0
 if "cached_attack_locations" not in st.session_state:
@@ -215,12 +230,6 @@ if total_events != st.session_state.last_total_events or not st.session_state.ca
     st.session_state.cached_attack_locations = format_attack_locations(explain_rows)
     st.session_state.cached_attack_summary = data.get("attack_summary", {})
     st.session_state.cached_response_summary = data.get("response_summary", {})
-
-# 6. Render Collapsible Sidebar
-render_sidebar(api_base)
-
-# Parse Active Page view routing
-page = st.query_params.get("page", "overview")
 
 if page == "overview":
     # 7. Render Hero Landing Section
