@@ -51,6 +51,12 @@ def render_sidebar(api_base: str):
                 Copilot Intel
               </div>
             </a>
+            <a href="?page=threat_hunting" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "threat_hunting" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Threat Hunting
+              </div>
+            </a>
             <br/>
             """,
             unsafe_allow_html=True
@@ -58,8 +64,14 @@ def render_sidebar(api_base: str):
         
         # Navigation Group 2: MANAGEMENT
         st.markdown(
-            """
+            f"""
             <p style="font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.5rem; padding-left: 0.5rem;">MANAGEMENT</p>
+            <a href="?page=investigations" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "investigations" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                Investigations
+              </div>
+            </a>
             <div class="sidebar-menu-item">
               <svg class="soc-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               Reports Archive

@@ -50,3 +50,80 @@ sequenceDiagram
     Reasoning-->>API: Return explanation content
     API-->>Dashboard: Render expanders / chat dialogue bubble
 ```
+
+---
+
+## 💾 3. Database Schema Design (SQLAlchemy)
+
+DcoY implements persistent storage using an SQLite backend for security cases, evidence mapping, analyst logs, and AI dialog links:
+
+```mermaid
+classDiagram
+    class DBInvestigation {
+        +String id
+        +String title
+        +String status
+        +String priority
+        +String severity
+        +DateTime created_at
+        +DateTime updated_at
+        +String assigned_analyst
+        +String last_modified_by
+        +Float risk_score
+        +Text ai_summary
+        +Text notes
+        +DateTime deleted_at
+    }
+    class DBEvidence {
+        +Integer id
+        +String investigation_id
+        +String event
+        +String timestamp
+        +String severity
+        +String confidence
+        +String mitre
+    }
+    class DBAnalystNote {
+        +Integer id
+        +String investigation_id
+        +String author
+        +Text content
+        +DateTime created_at
+    }
+    class DBCopilotLink {
+        +Integer id
+        +String investigation_id
+        +String conversation_key
+    }
+    class DBTimelineEvent {
+        +Integer id
+        +String investigation_id
+        +String timestamp
+        +String event
+        +Text details
+        +String action_by
+        +String before_value
+        +String after_value
+    }
+    DBInvestigation "1" *-- "many" DBEvidence
+    DBInvestigation "1" *-- "many" DBAnalystNote
+    DBInvestigation "1" *-- "many" DBCopilotLink
+    DBInvestigation "1" *-- "many" DBTimelineEvent
+```
+
+---
+
+## 🏛️ 4. Repository & Adapter Pattern
+
+- **InvestigationRepository**: Decouples SQLAlchemy session execution from FastAPI path operators, handling soft deletes, N+1 query mitigations (`joinedload`), and immutable audit trail generation.
+- **Notification Engine**: Uses an adapter interface allowing events (such as critical case creation or assignment changes) to be broadcasted to Slack, Teams, PagerDuty, and Email alert networks.
+
+---
+
+## ⏳ 5. Investigation Lifecycle Management
+
+Cases transition through three states:
+1. **Open**: Case is newly initialized from telemetry outliers.
+2. **Active**: Assigned to a security analyst for triage, evidence aggregation, and playbook execution.
+3. **Resolved**: Mitigations applied (e.g., firewall isolation) and audit trail logged.
+

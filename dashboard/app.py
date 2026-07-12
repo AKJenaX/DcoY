@@ -20,6 +20,8 @@ from dashboard.components.chat import render_qa_chat
 from dashboard.components.threat_intel import render_threat_intelligence_page
 from dashboard.components.live_geolocation import render_live_geolocation_page
 from dashboard.components.copilot_intel import render_copilot_page
+from dashboard.components.investigations import render_investigations_page
+from dashboard.components.threat_hunting import render_threat_hunting_page
 
 # Disable insecure warning for development environment calls
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -321,6 +323,12 @@ elif page == "live_geo":
 elif page == "copilot":
     # Render dedicated AI Security Copilot Center view
     render_copilot_page(explain_rows, detect_rows, latency_ms, api_base)
+elif page == "investigations":
+    # Render dedicated investigations and case management page view
+    render_investigations_page(explain_rows, detect_rows, latency_ms, api_base)
+elif page == "threat_hunting":
+    # Render dedicated threat hunting proactive investigation view
+    render_threat_hunting_page(explain_rows, detect_rows, latency_ms, api_base)
 else:
     # Unknown page route — redirect to overview
     st.query_params["page"] = "overview"
