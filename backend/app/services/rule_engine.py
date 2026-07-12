@@ -15,16 +15,18 @@ class RuleEngine:
 
     def compile_rule(self, rule: DBDetectionRule) -> Dict[str, Any]:
         """Parses and caches the JSON criteria for the specified rule."""
-        if rule.id in self._compiled_cache:
-            return self._compiled_cache[rule.id]
+        rule_any: Any = rule
+        r_id = int(rule_any.id)
+        if r_id in self._compiled_cache:
+            return self._compiled_cache[r_id]
         
         try:
-            criteria = json.loads(rule.detection_logic)
+            criteria = json.loads(str(rule_any.detection_logic))
         except Exception:
             # Fallback to key-value or empty if invalid
             criteria = {}
             
-        self._compiled_cache[rule.id] = criteria
+        self._compiled_cache[r_id] = criteria
         return criteria
 
     def clear_cache(self, rule_id: int) -> None:
