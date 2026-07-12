@@ -16,7 +16,7 @@ def render_qa_chat(api_base: str):
             ]
             
         # Render chat messages inside a scrollable box
-        chat_html = '<div class="chat-box" style="height: 220px; overflow-y: auto; padding: 0.5rem; margin-bottom: 0.75rem;">'
+        chat_html = '<div class="chat-box" style="height: 220px; overflow-y: auto; padding: 0.6rem; margin-bottom: 0.8rem; border-radius: 14px; border: 1px solid var(--border-color); background: rgba(5, 11, 20, 0.7);">'
         for message in st.session_state.chat_history:
             role = message["role"]
             content = message["content"]
@@ -63,7 +63,8 @@ def render_qa_chat(api_base: str):
                 st.toast("Copied message to clipboard!", icon="✓")
                 
         # Suggested prompt chips
-        st.markdown("<p style='font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.25rem; font-weight:600;'>Suggested Queries:</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.35rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;'>Suggested Queries</p>", unsafe_allow_html=True)
+        st.caption("Use these prompts to inspect the current incident context quickly.")
         chip_col1, chip_col2 = st.columns(2)
         
         clicked_query = None

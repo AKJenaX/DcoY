@@ -1,4 +1,4 @@
-"""DcoY Cyber Defense Dashboard entry point."""
+﻿"""DcoY Cyber Defense Dashboard entry point."""
 
 import time
 from datetime import datetime
@@ -24,6 +24,7 @@ from dashboard.components.investigations import render_investigations_page
 from dashboard.components.threat_hunting import render_threat_hunting_page
 from dashboard.components.detection_engineering import render_detection_rules_page
 from dashboard.components.executive_dashboard import render_executive_dashboard_page
+from marketing.pages.landing import render_marketing_page
 
 # Disable insecure warning for development environment calls
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -33,6 +34,12 @@ st.set_page_config(page_title="DcoY AI Defense", page_icon="🛡️", layout="wi
 
 # Inject Custom styling
 inject_custom_theme()
+
+page = st.query_params.get("page", "marketing")
+
+if page == "marketing":
+    render_marketing_page()
+    st.stop()
 
 # Set Auto-Refresh component
 st_autorefresh(interval=REFRESH_INTERVAL * 1000, key="refresh_main")

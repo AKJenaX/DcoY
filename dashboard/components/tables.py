@@ -10,7 +10,7 @@ def render_high_risk_threats(explain_rows: List[Dict[str, Any]]):
     
     if high_risk:
         html = """
-        <div class="soc-table-container">
+        <div class="soc-table-container" style="border:1px solid var(--border-color); border-radius: 14px; overflow:hidden;">
           <table class="soc-table">
             <thead>
               <tr>
@@ -47,7 +47,7 @@ def render_high_risk_threats(explain_rows: List[Dict[str, Any]]):
     else:
         with st.container(border=True):
             st.markdown(
-                '<p style="color:var(--success); font-weight:600; text-align:center; margin:0;">✓ No high-risk threats detected</p>',
+                '<div class="empty-state" style="min-height: 120px;"><div class="empty-icon">◌</div><div class="widget-title">No high-risk threats</div><div class="widget-subtitle">The environment is currently clear of critical alerts.</div></div>',
                 unsafe_allow_html=True
             )
     st.markdown("<br>", unsafe_allow_html=True)
@@ -103,7 +103,7 @@ def render_detailed_logs(detect_rows: List[Dict[str, Any]], explain_rows: List[D
             with st.container(border=True):
                 st.markdown('<p style="color:var(--text-secondary); text-align:center; margin:0;">No matching log rows found.</p>', unsafe_allow_html=True)
     else:
-        st.info("No log data available")
+        st.markdown('<div class="empty-state" style="min-height: 140px;"><div class="empty-icon">◌</div><div class="widget-title">No log data available</div><div class="widget-subtitle">Telemetry is currently unavailable or has not been ingested.</div></div>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
 def render_ai_explanations(explain_rows: List[Dict[str, Any]]):
@@ -120,5 +120,5 @@ def render_ai_explanations(explain_rows: List[Dict[str, Any]]):
                     st.markdown(row.get("explanation", "No explanation available"))
             st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.info("No AI explanations available")
+            st.markdown('<div class="empty-state" style="min-height: 140px;"><div class="empty-icon">◌</div><div class="widget-title">No AI explanations available</div><div class="widget-subtitle">The analysis layer does not currently have narrative evidence to display.</div></div>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
