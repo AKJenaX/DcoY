@@ -446,6 +446,7 @@ def api_report(user: str = Depends(get_current_user_from_api_key)):
 from app.database import engine, Base, get_db, SessionLocal
 from app.models import database_models
 from app.models.database_models import DBInvestigation, DBTimelineEvent, DBEvidence
+from app.models.detection_rule import DBDetectionRule, DBRuleRevision
 from app.utils.repository import InvestigationRepository
 from app.utils.notifications import notification_engine
 from sqlalchemy.orm import Session
@@ -515,6 +516,44 @@ try:
         
         db_seed.commit()
         logger.info("Database seeding completed.")
+
+    if db_seed.query(DBDetectionRule).count() == 0:
+        logger.info("Database is empty of rules, seeding default detection rules...")
+        rule1 = DBDetectionRule(
+            name="SSH Brute Force Detection",
+            description="Flags potential brute force attacks when SSH connection thresholds are exceeded.",
+            author="System",
+            version=1,
+            status="Enabled",
+            severity="High",
+            category="Brute Force",
+            mitre_technique="T1110 - Brute Force",
+            detection_logic='{"event_type": "ssh_bruteforce"}',
+            threshold=5,
+            time_window=60,
+            recommended_response="Update edge firewall configs to isolate attacking source subnet.",
+            tags="SSH, Bruteforce, Ingress"
+        )
+        db_seed.add(rule1)
+        
+        rule2 = DBDetectionRule(
+            name="Port Sweep Reconnaissance",
+            description="Flags ad-hoc TCP sweep behaviors targeting multiple ports.",
+            author="System",
+            version=1,
+            status="Enabled",
+            severity="Medium",
+            category="Port Scan",
+            mitre_technique="T1046 - Network Scanning",
+            detection_logic='{"event_type": "port_scan"}',
+            threshold=10,
+            time_window=120,
+            recommended_response="Redirect traffic context to active deception decoy traps.",
+            tags="Recon, Portscan, Discovery"
+        )
+        db_seed.add(rule2)
+        db_seed.commit()
+        logger.info("Detection rules seeding completed.")
 finally:
     db_seed.close()
 
@@ -753,3 +792,322 @@ def add_analyst_note(
     logger.info(f"POST /api/investigations/{cid}/notes - User: {user}")
     InvestigationRepository.add_analyst_note(db, cid, body.content, user)
     return {"message": "Analyst note added successfully"}
+
+from app.services.rule_engine import RuleEngine
+rule_evaluator = RuleEngine()
+
+class DetectionRuleCreate(BaseModel):
+    name: str
+    description: str
+    severity: str = "Medium"
+    category: str = "Custom Rules"
+    mitre_technique: Optional[str] = None
+    detection_logic: str = "{}"
+    threshold: int = 5
+    time_window: int = 60
+    recommended_response: Optional[str] = None
+    tags: Optional[str] = None
+
+class DetectionRuleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    severity: Optional[str] = None
+    category: Optional[str] = None
+    mitre_technique: Optional[str] = None
+    detection_logic: Optional[str] = None
+    threshold: Optional[int] = None
+    time_window: Optional[int] = None
+    recommended_response: Optional[str] = None
+    tags: Optional[str] = None
+    changelog: Optional[str] = None
+
+class TestCustomRulePayload(BaseModel):
+    detection_logic: str
+
+@app.post("/api/rules")
+def create_detection_rule(
+    body: DetectionRuleCreate,
+    user: str = Depends(check_permission("rules:write")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"POST /api/rules - User: {user}, Rule: {body.name}")
+    rule = DBDetectionRule(
+        name=body.name,
+        description=body.description,
+        author=user,
+        version=1,
+        status="Enabled",
+        severity=body.severity,
+        category=body.category,
+        mitre_technique=body.mitre_technique,
+        detection_logic=body.detection_logic,
+        threshold=body.threshold,
+        time_window=body.time_window,
+        recommended_response=body.recommended_response,
+        tags=body.tags
+    )
+    db.add(rule)
+    db.commit()
+    db.refresh(rule)
+    
+    # Save initial version revision
+    rev = DBRuleRevision(
+        rule_id=rule.id,
+        version=1,
+        name=rule.name,
+        description=rule.description,
+        severity=rule.severity,
+        detection_logic=rule.detection_logic,
+        threshold=rule.threshold,
+        time_window=rule.time_window,
+        recommended_response=rule.recommended_response,
+        changelog="Initial creation",
+        author=user
+    )
+    db.add(rev)
+    db.commit()
+    
+    # Broadcast alert
+    notification_engine.trigger("RULE_CREATED", {
+        "message": f"New detection rule '{rule.name}' created by {user}.",
+        "severity": rule.severity
+    })
+    
+    return {"message": "Detection rule created successfully", "id": rule.id}
+
+@app.get("/api/rules")
+def get_detection_rules(
+    category: Optional[str] = None,
+    severity: Optional[str] = None,
+    status: Optional[str] = None,
+    search: Optional[str] = None,
+    user: str = Depends(check_permission("rules:read")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"GET /api/rules - User: {user}")
+    query = db.query(DBDetectionRule)
+    
+    if category and category != "All":
+        query = query.filter(DBDetectionRule.category == category)
+    if severity and severity != "All":
+        query = query.filter(DBDetectionRule.severity == severity)
+    if status and status != "All":
+        query = query.filter(DBDetectionRule.status == status)
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            DBDetectionRule.name.like(search_pattern) |
+            DBDetectionRule.description.like(search_pattern)
+        )
+        
+    rules = query.order_by(DBDetectionRule.updated_at.desc()).all()
+    
+    result = []
+    for r in rules:
+        result.append({
+            "id": r.id,
+            "name": r.name,
+            "description": r.description,
+            "author": r.author,
+            "version": r.version,
+            "status": r.status,
+            "severity": r.severity,
+            "category": r.category,
+            "mitre_technique": r.mitre_technique,
+            "detection_logic": r.detection_logic,
+            "threshold": r.threshold,
+            "time_window": r.time_window,
+            "recommended_response": r.recommended_response,
+            "tags": r.tags,
+            "created_at": r.created_at.isoformat() + "Z",
+            "updated_at": r.updated_at.isoformat() + "Z"
+        })
+    return result
+
+@app.get("/api/rules/{rid}")
+def get_detection_rule_details(
+    rid: int,
+    user: str = Depends(check_permission("rules:read")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"GET /api/rules/{rid} - User: {user}")
+    r = db.query(DBDetectionRule).filter(DBDetectionRule.id == rid).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Rule not found")
+        
+    return {
+        "id": r.id,
+        "name": r.name,
+        "description": r.description,
+        "author": r.author,
+        "version": r.version,
+        "status": r.status,
+        "severity": r.severity,
+        "category": r.category,
+        "mitre_technique": r.mitre_technique,
+        "detection_logic": r.detection_logic,
+        "threshold": r.threshold,
+        "time_window": r.time_window,
+        "recommended_response": r.recommended_response,
+        "tags": r.tags,
+        "revisions": [
+            {
+                "version": rev.version,
+                "name": rev.name,
+                "description": rev.description,
+                "severity": rev.severity,
+                "detection_logic": rev.detection_logic,
+                "threshold": rev.threshold,
+                "time_window": rev.time_window,
+                "recommended_response": rev.recommended_response,
+                "changelog": rev.changelog,
+                "created_at": rev.created_at.isoformat(),
+                "author": rev.author
+            } for rev in sorted(r.revisions, key=lambda x: x.version, reverse=True)
+        ]
+    }
+
+@app.put("/api/rules/{rid}")
+def update_detection_rule(
+    rid: int,
+    body: DetectionRuleUpdate,
+    user: str = Depends(check_permission("rules:write")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"PUT /api/rules/{rid} - User: {user}")
+    rule = db.query(DBDetectionRule).filter(DBDetectionRule.id == rid).first()
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+        
+    # Apply updates
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    changelog_str = updates.pop("changelog", "Configuration update")
+    
+    # Save old configuration as revision before incrementing version
+    rev = DBRuleRevision(
+        rule_id=rule.id,
+        version=rule.version,
+        name=rule.name,
+        description=rule.description,
+        severity=rule.severity,
+        detection_logic=rule.detection_logic,
+        threshold=rule.threshold,
+        time_window=rule.time_window,
+        recommended_response=rule.recommended_response,
+        changelog=changelog_str,
+        author=rule.author
+    )
+    db.add(rev)
+    
+    # Apply modifications
+    for k, v in updates.items():
+        setattr(rule, k, v)
+        
+    rule.version += 1
+    rule.author = user
+    rule.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    
+    # Invalidate rule engine compilation cache
+    rule_evaluator.clear_cache(rule.id)
+    
+    return {"message": "Rule updated successfully", "version": rule.version}
+
+@app.delete("/api/rules/{rid}")
+def delete_detection_rule(
+    rid: int,
+    user: str = Depends(check_permission("rules:write")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"DELETE /api/rules/{rid} - User: {user}")
+    rule = db.query(DBDetectionRule).filter(DBDetectionRule.id == rid).first()
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+        
+    db.delete(rule)
+    db.commit()
+    return {"message": "Rule deleted successfully"}
+
+@app.post("/api/rules/{rid}/test")
+def test_detection_rule(
+    rid: int,
+    user: str = Depends(check_permission("rules:read")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"POST /api/rules/{rid}/test - User: {user}")
+    rule = db.query(DBDetectionRule).filter(DBDetectionRule.id == rid).first()
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+        
+    # Evaluate using active telemetry cache
+    telemetry = _run_agent_pipeline(user)
+    matched, duration_ms, coverage = rule_evaluator.test_rule(rule, telemetry)
+    
+    return {
+        "matched_count": len(matched),
+        "execution_time_ms": duration_ms,
+        "detection_coverage": coverage,
+        "false_positive_estimate": 0.05 if len(matched) > 2 else 0.01,
+        "matched_events": [
+            {
+                "ip": e.get("ip"),
+                "timestamp": e.get("timestamp") or e.get("time") or datetime.now(timezone.utc).isoformat(),
+                "event_type": e.get("event_type"),
+                "risk_score": e.get("risk_score")
+            } for e in matched
+        ]
+    }
+
+@app.post("/api/rules/test-custom")
+def test_custom_rule(
+    body: TestCustomRulePayload,
+    user: str = Depends(check_permission("rules:read"))
+):
+    logger.info(f"POST /api/rules/test-custom - User: {user}")
+    temp_rule = DBDetectionRule(id=999999, detection_logic=body.detection_logic)
+    telemetry = _run_agent_pipeline(user)
+    
+    matched, duration_ms, coverage = rule_evaluator.test_rule(temp_rule, telemetry)
+    return {
+        "would_trigger": len(matched) > 0,
+        "affected_events_count": len(matched),
+        "execution_time_ms": duration_ms,
+        "confidence": "High" if len(matched) < 5 else "Medium"
+    }
+
+@app.post("/api/rules/{rid}/revert/{version}")
+def revert_detection_rule_revision(
+    rid: int,
+    version: int,
+    user: str = Depends(check_permission("rules:write")),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"POST /api/rules/{rid}/revert/{version} - User: {user}")
+    rule = db.query(DBDetectionRule).filter(DBDetectionRule.id == rid).first()
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+        
+    rev = db.query(DBRuleRevision).filter(
+        DBRuleRevision.rule_id == rid,
+        DBRuleRevision.version == version
+    ).first()
+    if not rev:
+        raise HTTPException(status_code=404, detail="Revision version not found")
+        
+    # Revert rule state
+    rule.name = rev.name
+    rule.description = rev.description
+    rule.severity = rev.severity
+    rule.detection_logic = rev.detection_logic
+    rule.threshold = rev.threshold
+    rule.time_window = rev.time_window
+    rule.recommended_response = rev.recommended_response
+    rule.author = user
+    rule.version += 1
+    rule.updated_at = datetime.now(timezone.utc)
+    
+    db.commit()
+    rule_evaluator.clear_cache(rule.id)
+    
+    return {"message": "Rule reverted successfully", "version": rule.version}

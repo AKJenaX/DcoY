@@ -22,6 +22,7 @@ from dashboard.components.live_geolocation import render_live_geolocation_page
 from dashboard.components.copilot_intel import render_copilot_page
 from dashboard.components.investigations import render_investigations_page
 from dashboard.components.threat_hunting import render_threat_hunting_page
+from dashboard.components.detection_engineering import render_detection_rules_page
 
 # Disable insecure warning for development environment calls
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -329,6 +330,9 @@ elif page == "investigations":
 elif page == "threat_hunting":
     # Render dedicated threat hunting proactive investigation view
     render_threat_hunting_page(explain_rows, detect_rows, latency_ms, api_base)
+elif page == "detection_rules":
+    # Render dedicated detection rules configuration workbench view
+    render_detection_rules_page(explain_rows, detect_rows, latency_ms, api_base)
 else:
     # Unknown page route — redirect to overview
     st.query_params["page"] = "overview"
