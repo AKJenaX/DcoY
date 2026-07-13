@@ -1,4 +1,4 @@
-﻿"""DcoY Cyber Defense Dashboard entry point."""
+"""DcoY Cyber Defense Dashboard entry point."""
 
 import time
 from datetime import datetime
@@ -24,6 +24,9 @@ from dashboard.components.investigations import render_investigations_page
 from dashboard.components.threat_hunting import render_threat_hunting_page
 from dashboard.components.detection_engineering import render_detection_rules_page
 from dashboard.components.executive_dashboard import render_executive_dashboard_page
+from dashboard.components.attack_simulation import render_attack_simulation_page
+from dashboard.components.incident_response import render_incident_response_page
+from dashboard.components.knowledge_graph import render_knowledge_graph_page
 from marketing.pages.landing import render_marketing_page
 
 # Disable insecure warning for development environment calls
@@ -36,6 +39,10 @@ st.set_page_config(page_title="DcoY AI Defense", page_icon="🛡️", layout="wi
 inject_custom_theme()
 
 page = st.query_params.get("page", "marketing")
+search_val = st.query_params.get("search", "")
+
+if search_val and page != "marketing":
+    page = "search"
 
 if page == "marketing":
     render_marketing_page()
@@ -349,6 +356,25 @@ elif page == "threat_hunting":
 elif page == "detection_rules":
     # Render dedicated detection rules configuration workbench view
     render_detection_rules_page(explain_rows, detect_rows, latency_ms, api_base)
+elif page == "incident_response":
+    render_incident_response_page(explain_rows, detect_rows, latency_ms, api_base)
+elif page == "soar":
+    from dashboard.components.soar import render_soar_page
+    render_soar_page(explain_rows, detect_rows, latency_ms, api_base)
+elif page == "intelligence_fusion":
+    from dashboard.components.intelligence_fusion import render_intelligence_fusion_page
+    render_intelligence_fusion_page(explain_rows, detect_rows, latency_ms, api_base)
+elif page == "attack_simulation":
+    # Render dedicated attack simulation validation view
+    render_attack_simulation_page(api_base)
+elif page == "knowledge_graph":
+    render_knowledge_graph_page(explain_rows, detect_rows, latency_ms, api_base)
+elif page == "platform_health":
+    from dashboard.components.platform_health import render_platform_health_page
+    render_platform_health_page(api_base)
+elif page == "search":
+    from dashboard.components.global_search import render_global_search_results
+    render_global_search_results(api_base)
 else:
     # Unknown page route — redirect to overview
     st.query_params["page"] = "overview"

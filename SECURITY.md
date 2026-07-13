@@ -17,4 +17,4 @@ We will review your submission and reply within 48 hours to confirm receipt and 
 
 ## Supported Versions
 
-Only the latest release (current version `v0.1.0-alpha`) is actively supported with security updates. We recommend always running the latest code to ensure maximum defense capabilities.
+Only the latest release (current version `v1.0.0-rc1`) is actively supported with security updates. We recommend always running the latest code to ensure maximum defense capabilities.

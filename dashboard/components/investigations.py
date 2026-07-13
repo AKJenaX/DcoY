@@ -416,9 +416,16 @@ def render_investigations_page(
 
                 if "remediation_dialogue" in st.session_state:
                     st.info(st.session_state.remediation_dialogue)
-                    if st.button("Dismiss Playbook", key="dismiss_remediation_btn"):
-                        del st.session_state.remediation_dialogue
-                        st.rerun()
+                    p_col1, p_col2 = st.columns(2)
+                    with p_col1:
+                        if st.button("🎯 Execute Playbook in Workspace", key="go_to_playbook_workspace_btn", use_container_width=True):
+                            st.session_state.selected_incident_id = case["id"]
+                            st.query_params["page"] = "incident_response"
+                            st.rerun()
+                    with p_col2:
+                        if st.button("Dismiss Playbook", key="dismiss_remediation_btn", use_container_width=True):
+                            del st.session_state.remediation_dialogue
+                            st.rerun()
 
                 st.markdown("<hr style='margin: 0.5rem 0; border: none; border-top: 1px solid var(--border-color);' />", unsafe_allow_html=True)
 

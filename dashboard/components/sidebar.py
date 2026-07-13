@@ -22,7 +22,23 @@ def render_sidebar(api_base: str):
             """,
             unsafe_allow_html=True
         )
-        
+        # Global Search input
+        search_query = st.text_input("🔍 Global Platform Search", placeholder="Press enter to query...", key="platform_search_bar")
+        if search_query:
+            st.query_params["search"] = search_query
+            st.query_params["page"] = "search"
+            st.rerun()
+
+        if st.session_state.get("demo_mode_active"):
+            st.markdown(
+                """
+                <div style="background-color:rgba(230,126,34,0.12); border:1px solid #e67e22; border-radius:6px; padding:0.4rem; text-align:center; margin-bottom:0.75rem;">
+                  <span style="color:#e67e22; font-weight:800; font-size:0.65rem; letter-spacing:0.5px;">🎮 INTERACTIVE DEMO ACTIVE</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
         # Navigation Group 0: MARKETING
         st.markdown(
             f"""
@@ -99,10 +115,46 @@ def render_sidebar(api_base: str):
                 Investigations
               </div>
             </a>
+            <a href="?page=incident_response" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "incident_response" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Incident Response
+              </div>
+            </a>
+            <a href="?page=soar" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "soar" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                SOAR Orchestration
+              </div>
+            </a>
+            <a href="?page=intelligence_fusion" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "intelligence_fusion" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+                Intelligence Fusion
+              </div>
+            </a>
+            <a href="?page=knowledge_graph" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "knowledge_graph" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                Knowledge Graph
+              </div>
+            </a>
+            <a href="?page=platform_health" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "platform_health" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Platform Diagnostics
+              </div>
+            </a>
             <a href="?page=detection_rules" target="_self" style="text-decoration:none; color:inherit;">
               <div class="sidebar-menu-item {"active" if current_page == "detection_rules" else ""}">
                 <svg class="soc-icon" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
                 Detection Rules
+              </div>
+            </a>
+            <a href="?page=attack_simulation" target="_self" style="text-decoration:none; color:inherit;">
+              <div class="sidebar-menu-item {"active" if current_page == "attack_simulation" else ""}">
+                <svg class="soc-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                Attack Simulation
               </div>
             </a>
             <div class="sidebar-menu-item">
@@ -214,3 +266,10 @@ def render_sidebar(api_base: str):
             """,
             unsafe_allow_html=True
         )
+
+    # Render global widgets
+    from dashboard.components.notifications import render_notifications_tray
+    render_notifications_tray()
+
+    from dashboard.components.entity_details import render_entity_details_drawer
+    render_entity_details_drawer(api_base)

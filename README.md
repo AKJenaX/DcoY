@@ -349,11 +349,17 @@ python -m pytest backend/tests/test_rule_quality.py -q
 
 ---
 
-## Roadmap
+## Release Milestones & Roadmap
 
-- **v0.1.0-alpha**: Real-time telemetry, ML anomaly detection, active deception, Streamlit SOC workspaces, detection engineering, investigations, and executive intelligence.
-- **v0.2.0-beta**: Persistent event storage, richer collaboration, and expanded enterprise reporting.
-- **v0.3.0-stable**: Packet capture integrations, production-ready deployment hardening, and React frontend adoption using the DcoY design system.
+- **v0.1.0-alpha**: Real-time telemetry, ML anomaly detection, active deception, Streamlit SOC workspaces, detection engineering, and executive dashboards.
+- **v1.0.0-rc1 (Current)**:
+  - **Security Knowledge Graph**: Directional entity relationships with caching and degree centrality analytics.
+  - **Attack Path Engine**: Dijkstra-based shortest-path traversal mapping threat movements alongside matching defensive controls.
+  - **Platform Diagnostics & Health**: Dynamic FastAPI route inventories, latency profiling, and health statuses.
+  - **Structured Observability**: Structured JSON logging, OpenAPI schema metadata, and request latency logging middleware.
+  - **Alembic Database Migrations**: Relational schema versioning for SQLite.
+  - **Hardened Deployment**: Docker multi-stage builds running as non-privileged users.
+  - **Interactive Demo Orchestration**: One-click synthetic attack scenario generation and observer consoles.
 
 ---
 

@@ -1,76 +1,66 @@
-"""Application configuration loaded from environment variables."""
+"""Platform Settings and Configurations Manager."""
 
 import os
 import secrets
-import logging
 from typing import Optional
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
-logger = logging.getLogger(__name__)
-
-
-def _parse_bool(value: Optional[str], *, default: bool = False) -> bool:
-    """Return True if the env value looks like a boolean true."""
-    if value is None or value.strip() == "":
-        return default
-    return value.strip().lower() in ("true", "1", "yes")
 
 
 class Settings:
-    """Application settings read from the process environment."""
+    """Central settings manager parsing environment variables with secure production validation."""
 
-    def __init__(self) -> None:
+    def __init__(self):
         self.APP_NAME: str = os.getenv("APP_NAME", "DcoY")
-        self.DEBUG: bool = _parse_bool(os.getenv("DEBUG"), default=False)
-        self.LLM_ENABLED: bool = _parse_bool(os.getenv("LLM_ENABLED"), default=True)
-        self.LLM_HOST: str = os.getenv("LLM_HOST", "http://127.0.0.1:11434").rstrip("/")
+        
+        # Parse DEBUG: default to True
+        debug_env = os.getenv("DEBUG", "True").lower()
+        self.DEBUG: bool = debug_env == "true" or debug_env == "1"
+
+        # Parse ENV
+        self.ENV: str = os.getenv("ENV", "development").lower()
+
+        # Parse SECRET_KEY (JWT signing secret)
+        raw_key = os.getenv("SECRET_KEY", "")
+        
+        # Security validation checks
+        if not self.DEBUG:  # Production Mode (DEBUG=False)
+            if not raw_key:
+                raise ValueError("CRITICAL SECURITY ERROR: SECRET_KEY is missing or empty in production mode!")
+            if len(raw_key) < 32:
+                raise ValueError("SECRET_KEY is missing, too short (< 32 chars) in production mode!")
+            self.SECRET_KEY = raw_key
+        else:  # Development Mode (DEBUG=True)
+            if not raw_key or len(raw_key) < 32:
+                # Weak or missing key triggers secure auto-generation
+                self.SECRET_KEY = secrets.token_hex(32)
+            else:
+                self.SECRET_KEY = raw_key
+
+        self.JWT_ALGORITHM: str = "HS256"
+        self.ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+
+        # Database Settings
+        self.DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///backend/dcoy.db")
+
+        # LLM Reasoning Settings
+        self.LLM_ENABLED: bool = os.getenv("LLM_ENABLED", "True").lower() == "true"
+        self.LLM_HOST: str = os.getenv("LLM_HOST", "http://127.0.0.1:11434")
         self.LLM_MODEL: str = os.getenv("LLM_MODEL", "llama3")
         self.LLM_TIMEOUT: float = float(os.getenv("LLM_TIMEOUT", "2.0"))
         self.LLM_HEALTH_CHECK_INTERVAL: float = float(os.getenv("LLM_HEALTH_CHECK_INTERVAL", "60.0"))
         self.LLM_RETRY_INTERVAL: float = float(os.getenv("LLM_RETRY_INTERVAL", "30.0"))
         self.LLM_FAILURE_THRESHOLD: int = int(os.getenv("LLM_FAILURE_THRESHOLD", "3"))
 
-        # JWT Configuration Settings
-        self.JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
-        self.ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+        # Observability Settings
+        self.LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
+        self.LOG_FORMAT_JSON: bool = os.getenv("LOG_FORMAT_JSON", "false").lower() == "true"
 
-        # Load and Validate SECRET_KEY
-        env_secret = os.getenv("SECRET_KEY")
-        is_prod = not self.DEBUG
-        
-        insecure_keys = (
-            "dcoy_secret_key",
-            "generate_a_secure_random_key_here_for_prod_use",
-            "secret",
-            "default",
-            "key",
-        )
-        
-        is_insecure = False
-        if env_secret:
-            clean_secret = env_secret.strip()
-            if len(clean_secret) < 32 or clean_secret.lower() in insecure_keys:
-                is_insecure = True
-        else:
-            is_insecure = True
-
-        if is_insecure:
-            if is_prod:
-                raise ValueError(
-                    "CRITICAL SECURITY ERROR: SECRET_KEY is missing, too short (<32 characters), or insecure. "
-                    "In production mode (DEBUG=False), a strong SECRET_KEY must be provided in the environment."
-                )
-            else:
-                logger.warning(
-                    "WARNING: SECRET_KEY is missing or insecure. "
-                    "Generating a temporary secure random key for development environment."
-                )
-                self.SECRET_KEY: str = secrets.token_hex(32)
-        else:
-            self.SECRET_KEY: str = env_secret.strip()
+    def validate(self):
+        """Validate safety parameters, raising warnings for insecure keys in production."""
+        if not self.DEBUG:
+            if not self.SECRET_KEY:
+                raise ValueError("CRITICAL SECURITY ERROR: SECRET_KEY is missing or empty in production mode!")
+            if len(self.SECRET_KEY) < 32:
+                raise ValueError("SECRET_KEY is missing, too short (< 32 chars) in production mode!")
 
 
 settings = Settings()
