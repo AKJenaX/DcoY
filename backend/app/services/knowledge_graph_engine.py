@@ -87,7 +87,7 @@ class KnowledgeGraphEngine:
             t = cast(str, ind.ioc_type)
             node_id = f"Indicator:{val}"
             label = f"{t}: {val}"
-            add_node(node_id, "Indicator", label, risk=ind.confidence_score, confidence=ind.confidence_score, details={
+            add_node(node_id, "Indicator", label, risk=cast(float, ind.confidence_score), confidence=cast(float, ind.confidence_score), details={
                 "feed": ind.threat_feed,
                 "status": ind.status
             })
@@ -95,7 +95,7 @@ class KnowledgeGraphEngine:
         # ─── Assets ───
         for asset in assets:
             node_id = f"Asset:{asset.id}"
-            add_node(node_id, "Asset", f"Asset: {asset.name}", risk=asset.risk_score, confidence=1.0, details={
+            add_node(node_id, "Asset", f"Asset: {asset.name}", risk=cast(float, asset.risk_score), confidence=1.0, details={
                 "ip": asset.ip_address,
                 "type": asset.asset_type,
                 "criticality": asset.criticality
@@ -104,7 +104,7 @@ class KnowledgeGraphEngine:
         # ─── Users ───
         for user in users:
             node_id = f"User:{user.username}"
-            add_node(node_id, "User", f"User: {user.username}", risk=user.risk_score, confidence=1.0, details={
+            add_node(node_id, "User", f"User: {user.username}", risk=cast(float, user.risk_score), confidence=1.0, details={
                 "role": user.role
             })
 
@@ -120,13 +120,13 @@ class KnowledgeGraphEngine:
             if rule.mitre_technique:
                 tech_id = rule.mitre_technique.split(" - ")[0].strip()
                 tech_node_id = f"MITRE:{tech_id}"
-                add_node(tech_node_id, "MITRE", rule.mitre_technique, risk=0.5, confidence=1.0)
+                add_node(tech_node_id, "MITRE", cast(str, rule.mitre_technique), risk=0.5, confidence=1.0)
                 add_edge(node_id, tech_node_id, "related_to", weight=0.9, description="Rule implements detection for technique")
 
         # ─── Investigations (Cases) ───
         for case in cases:
             node_id = f"Case:{case.id}"
-            add_node(node_id, "Case", f"Case: {case.title}", risk=case.risk_score, confidence=1.0, details={
+            add_node(node_id, "Case", f"Case: {case.title}", risk=cast(float, case.risk_score), confidence=1.0, details={
                 "status": case.status,
                 "priority": case.priority,
                 "severity": case.severity,
@@ -136,7 +136,7 @@ class KnowledgeGraphEngine:
         # ─── Simulations ───
         for sim in simulations:
             node_id = f"Simulation:{sim.id}"
-            add_node(node_id, "Simulation", f"Sim: {sim.scenario_name}", risk=1.0 - sim.detection_success_rate, confidence=sim.simulation_confidence, details={
+            add_node(node_id, "Simulation", f"Sim: {sim.scenario_name}", risk=1.0 - cast(float, sim.detection_success_rate), confidence=cast(float, sim.simulation_confidence), details={
                 "status": sim.status,
                 "success_rate": sim.detection_success_rate,
                 "mitre_techniques": sim.mitre_techniques
@@ -175,14 +175,16 @@ class KnowledgeGraphEngine:
         # Process correlations -> Add edges
         for corr in correlations:
             # Translate corr.source_id / target_id into nodes
-            src = corr.source_id
-            tgt = corr.target_id
+            src = cast(str, corr.source_id)
+            tgt = cast(str, corr.target_id)
+            src_type = cast(str, corr.source_type)
+            tgt_type = cast(str, corr.target_type)
             
             # Map standard prefixes to match node IDs
             if ":" not in src:
-                src = f"{corr.source_type}:{src}"
+                src = f"{src_type}:{src}"
             if ":" not in tgt:
-                tgt = f"{corr.target_type}:{tgt}"
+                tgt = f"{tgt_type}:{tgt}"
                 
             # Map correlation relationship class to standardized types
             rel_map = {
@@ -192,8 +194,9 @@ class KnowledgeGraphEngine:
                 "tested_in": "simulated_by",
                 "orchestrated_by": "orchestrated_by"
             }
-            rel_type = rel_map.get(corr.relationship_class, "related_to")
-            add_edge(src, tgt, rel_type, weight=corr.weight)
+            rel_class = cast(str, corr.relationship_class)
+            rel_type = rel_map.get(rel_class, "related_to")
+            add_edge(src, tgt, rel_type, weight=cast(float, corr.weight))
 
         # Process DB Edges -> Add persistent custom edges
         for edge in db_edges:
