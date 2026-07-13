@@ -200,7 +200,7 @@ class KnowledgeGraphEngine:
 
         # Process DB Edges -> Add persistent custom edges
         for edge in db_edges:
-            add_edge(edge.source_id, edge.target_id, edge.relationship_type, weight=edge.weight, description=edge.description or "")
+            add_edge(cast(str, edge.source_id), cast(str, edge.target_id), cast(str, edge.relationship_type), weight=cast(float, edge.weight), description=cast(str, edge.description) if edge.description else "")
 
         # Dynamic heuristic mappings to build a "true security knowledge graph"
         # 1. Map indicators of type "IP" targeting "Asset" nodes or "User" nodes
@@ -209,13 +209,13 @@ class KnowledgeGraphEngine:
             # Link indicator to assets if there's an IP match
             for asset in assets:
                 if ioc_val == asset.ip_address:
-                    add_edge(f"Indicator:{ioc_val}", f"Asset:{asset.id}", "targets", weight=ind.confidence_score, description="Indicator matches asset IP")
+                    add_edge(f"Indicator:{ioc_val}", f"Asset:{asset.id}", "targets", weight=cast(float, ind.confidence_score), description="Indicator matches asset IP")
             
             # If the indicator is a User (e.g. compromised AD credentials)
             if ind.ioc_type == "User":
                 for user in users:
                     if ioc_val == user.username:
-                        add_edge(f"Indicator:{ioc_val}", f"User:{user.username}", "uses", weight=ind.confidence_score, description="Indicator target matches user identity")
+                        add_edge(f"Indicator:{ioc_val}", f"User:{user.username}", "uses", weight=cast(float, ind.confidence_score), description="Indicator target matches user identity")
 
         # 2. Map Active Cases to Rules and Playbooks
         # Link Cases -> `investigated_by` -> Analyst/User
