@@ -51,7 +51,7 @@ class KnowledgeGraphEngine:
         nodes_seen: Set[str] = set()
         edges_seen: Set[str] = set()
 
-        def add_node(node_id: str, node_type: str, label: str, risk: float = 0.0, confidence: float = 1.0, details: Dict[str, Any] = None):
+        def add_node(node_id: str, node_type: str, label: str, risk: float = 0.0, confidence: float = 1.0, details: Optional[Dict[str, Any]] = None):
             if node_id in nodes_seen:
                 return
             nodes_seen.add(node_id)
