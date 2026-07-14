@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { Hexagon } from "../components/Hexagon";
+import { GlassPanel } from "../components/GlassPanel";
 import { Shield, Bug, ClipboardList, Activity, RefreshCw, Clock3, RadioTower, Network } from "lucide-react";
 import { useRealtimeChannel } from "../hooks/useRealtimeChannel";
 
@@ -69,54 +70,66 @@ export const Overview: React.FC = () => {
       )}
 
       {/* Hex KPI section */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 justify-items-center py-1 perspective-container">
-        <div className="tile-3d-elevation">
-          <Hexagon size={116} glowColor="red" pulse={anomalyCount > 5}>
-            <Shield className="w-5 h-5 text-red-500 mb-1" />
-            <span className="text-xl font-extrabold text-white">{anomalyCount}</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Active Threats</span>
-          </Hexagon>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 justify-items-center py-1">
+        <GlassPanel borderColor="gray" showBrackets={false} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon size={116} glowColor="red" pulse={anomalyCount > 5}>
+              <Shield className="w-5 h-5 text-red-500 mb-1" />
+              <span className="text-xl font-extrabold text-white">{anomalyCount}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Active Threats</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
 
-        <div className="tile-3d-elevation">
-          <Hexagon size={116} glowColor="amber" pulse={activeDecoys > 0}>
-            <Bug className="w-5 h-5 text-amber-500 mb-1" />
-            <span className="text-xl font-extrabold text-white">{activeDecoys}</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Honeypots Engaged</span>
-          </Hexagon>
-        </div>
+        <GlassPanel borderColor="gray" showBrackets={false} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon size={116} glowColor="amber" pulse={activeDecoys > 0}>
+              <Bug className="w-5 h-5 text-amber-500 mb-1" />
+              <span className="text-xl font-extrabold text-white">{activeDecoys}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Honeypots Engaged</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
 
-        <div className="tile-3d-elevation">
-          <Hexagon size={116} glowColor="cyan">
-            <ClipboardList className="w-5 h-5 text-cyan-400 mb-1" />
-            <span className="text-xl font-extrabold text-white">{openCases}</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Open Cases</span>
-          </Hexagon>
-        </div>
+        <GlassPanel borderColor="gray" showBrackets={false} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon size={116} glowColor="cyan">
+              <ClipboardList className="w-5 h-5 text-cyan-400 mb-1" />
+              <span className="text-xl font-extrabold text-white">{openCases}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Open Cases</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
 
-        <div className="tile-3d-elevation">
-          <Hexagon size={116} glowColor="green">
-            <Activity className="w-5 h-5 text-green-500 mb-1" />
-            <span className="text-xl font-extrabold text-white">{healthScore}%</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Health Index</span>
-          </Hexagon>
-        </div>
+        <GlassPanel borderColor="gray" showBrackets={false} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon size={116} glowColor="green">
+              <Activity className="w-5 h-5 text-green-500 mb-1" />
+              <span className="text-xl font-extrabold text-white">{healthScore}%</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Health Index</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
 
-        <div className="tile-3d-elevation">
-          <Hexagon size={116} glowColor="amber">
-            <Clock3 className="w-5 h-5 text-amber-500 mb-1" />
-            <span className="text-xl font-extrabold text-white">{avgResponseTime}s</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Avg Response</span>
-          </Hexagon>
-        </div>
+        <GlassPanel borderColor="gray" showBrackets={false} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon size={116} glowColor="amber">
+              <Clock3 className="w-5 h-5 text-amber-500 mb-1" />
+              <span className="text-xl font-extrabold text-white">{avgResponseTime}s</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Avg Response</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
 
-        <div className="tile-3d-elevation">
-          <Hexagon size={116} glowColor="cyan">
-            <RadioTower className="w-5 h-5 text-cyan-400 mb-1" />
-            <span className="text-xl font-extrabold text-white">{intelFeedsOnline}</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Intel Feeds</span>
-          </Hexagon>
-        </div>
+        <GlassPanel borderColor="gray" showBrackets={false} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon size={116} glowColor="cyan">
+              <RadioTower className="w-5 h-5 text-cyan-400 mb-1" />
+              <span className="text-xl font-extrabold text-white">{intelFeedsOnline}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Intel Feeds</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
       </div>
 
       {/* Main Grid: Scrolling Telemetry Feed & MITRE Matrix */}

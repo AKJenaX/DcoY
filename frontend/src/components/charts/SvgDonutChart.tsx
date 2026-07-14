@@ -8,7 +8,7 @@ interface DonutChartProps {
 
 export const SvgDonutChart: React.FC<DonutChartProps> = ({
   data,
-  colors = ["#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6"], // red, amber, green, blue, purple
+  colors = ["#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#00e5ff"], // red, amber, green, blue, cyan
   size = 130,
 }) => {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);

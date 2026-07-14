@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visual Direction Preview // Branching Route Motif</title>
+  
+  <!-- Modern cyber/tech fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Rajdhani:wght@500;600;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* Reset & Core layout */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #030305;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #e2e8f0;
+    }
+
+    /* Outer Container with radial dark ambient light */
+    .viewport-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 25% 50%, #0c0d14 0%, #030305 70%);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8%;
+    }
+
+    /* Ambient background grid */
+    .viewport-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* SVG Canvas styling */
+    #svg-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Glassmorphic Security Portal Card */
+    .glass-card {
+      position: relative;
+      z-index: 10;
+      width: 480px;
+      height: 620px;
+      background: rgba(8, 8, 12, 0.45);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 191, 0, 0.25);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      box-shadow: 
+        0 40px 80px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0px rgba(255, 255, 255, 0.08),
+        0 0 40px rgba(255, 191, 0, 0.03);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* Cybernetic decoration corner brackets */
+    .glass-card::before, .glass-card::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-color: rgba(255, 191, 0, 0.6);
+      border-style: solid;
+      pointer-events: none;
+    }
+    
+    .glass-card::before {
+      top: 15px;
+      left: 15px;
+      border-width: 2px 0 0 2px;
+    }
+
+    .glass-card::after {
+      bottom: 15px;
+      right: 15px;
+      border-width: 0 2px 2px 0;
+    }
+
+    /* Header styling */
+    .card-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 20px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #ffb300;
+      margin-bottom: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #00ff66;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff66;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    .card-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #ffffff;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+      line-height: 1.1;
+    }
+
+    .card-subtitle {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 6px;
+    }
+
+    /* Form Fields */
+    .card-body {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 24px;
+      margin: 30px 0;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input-wrapper input:focus {
+      border-color: rgba(255, 191, 0, 0.5);
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 15px rgba(255, 191, 0, 0.1);
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 16px;
+      color: rgba(255, 191, 0, 0.4);
+      font-size: 12px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    /* Stats subpanel */
+    .stats-panel {
+      background: rgba(255, 255, 255, 0.015);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-name {
+      font-size: 10px;
+      font-family: 'Rajdhani', sans-serif;
+      color: rgba(255, 255, 255, 0.35);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .stat-val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    .stat-val.highlight {
+      color: #00e5ff;
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+    }
+
+    /* Button */
+    .portal-btn {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(255, 191, 0, 0.15) 0%, rgba(255, 191, 0, 0.03) 100%);
+      border: 1px solid rgba(255, 191, 0, 0.5);
+      border-radius: 8px;
+      padding: 16px;
+      color: #ffb300;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 8px rgba(255, 191, 0, 0.3);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .portal-btn:hover {
+      background: linear-gradient(135deg, rgba(255, 191, 0, 0.35) 0%, rgba(255, 191, 0, 0.1) 100%);
+      box-shadow: 0 0 25px rgba(255, 191, 0, 0.25);
+      color: #ffffff;
+      border-color: #ffb300;
+    }
+
+    /* Footer styling */
+    .card-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .footer-warning {
+      color: rgba(255, 191, 0, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="viewport-container">
+    
+    <!-- SVG Background Canvas containing hexagons and glowing ribbons -->
+    <svg id="svg-canvas" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Tighter glow filters for precise "traced path" look -->
+        <filter id="glow-amber" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" result="blur1" />
+          <feGaussianBlur stdDeviation="11" result="blur2" />
+          <feMerge>
+            <feMergeNode in="blur2" />
+            <feMergeNode in="blur1" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" result="blur1" />
+          <feGaussianBlur stdDeviation="11" result="blur2" />
+          <feMerge>
+            <feMergeNode in="blur2" />
+            <feMergeNode in="blur1" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        <filter id="glow-violet" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" result="blur1" />
+          <feGaussianBlur stdDeviation="11" result="blur2" />
+          <feMerge>
+            <feMergeNode in="blur2" />
+            <feMergeNode in="blur1" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        <filter id="mask-blur">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+
+        <!-- Intersection Mask to capture overlaps -->
+        <mask id="cyan-mask">
+          <rect x="-100" y="-100" width="2120" height="1280" fill="black" />
+          <!-- Glow region of Cyan ribbon in mask (semi-transparent white) -->
+          <path id="mask-glow-path" fill="none" stroke="white" stroke-width="24" filter="url(#mask-blur)" opacity="0.85" />
+          <!-- Core region of Cyan ribbon in mask (opaque white) -->
+          <path id="mask-core-path" fill="none" stroke="white" stroke-width="6" />
+        </mask>
+
+        <!-- 3D Hexagon Face Gradients -->
+        <linearGradient id="top-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1e1e24" />
+          <stop offset="100%" stop-color="#0f0f12" />
+        </linearGradient>
+
+        <linearGradient id="side-left-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#15151b" />
+          <stop offset="100%" stop-color="#08080a" />
+        </linearGradient>
+
+        <linearGradient id="side-right-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#0f0f13" />
+          <stop offset="100%" stop-color="#040405" />
+        </linearGradient>
+
+        <!-- Highlighted Active/Obstacle Hexagons -->
+        <linearGradient id="active-amber-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#2a2216" />
+          <stop offset="100%" stop-color="#16120c" />
+        </linearGradient>
+
+        <linearGradient id="active-cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#12262a" />
+          <stop offset="100%" stop-color="#091418" />
+        </linearGradient>
+      </defs>
+
+      <!-- Hexagon Field Group -->
+      <g id="hex-field"></g>
+
+      <!-- Glowing Ribbons Group (Thinner stroke, tighter glow) -->
+      <g id="energy-ribbons">
+        <!-- Amber Ribbon (Glow + Core) -->
+        <path id="amber-glow" fill="none" stroke="#ffb300" stroke-width="11" filter="url(#glow-amber)" opacity="0.32" />
+        <path id="amber-core" fill="none" stroke="#ffd54f" stroke-width="2.6" />
+
+        <!-- Cyan Ribbon (Glow + Core) -->
+        <path id="cyan-glow" fill="none" stroke="#00e5ff" stroke-width="11" filter="url(#glow-cyan)" opacity="0.32" />
+        <path id="cyan-core" fill="none" stroke="#80deea" stroke-width="2.6" />
+
+        <!-- Violet Overlap Region (Only visible where Amber intersects Cyan mask) -->
+        <path id="violet-glow" fill="none" stroke="#d500f9" stroke-width="13" filter="url(#glow-violet)" opacity="0.65" mask="url(#cyan-mask)" />
+        <path id="violet-core" fill="none" stroke="#f48fb1" stroke-width="2.6" mask="url(#cyan-mask)" />
+      </g>
+    </svg>
+
+    <!-- Glassmorphic Card Overlay (Identical to previous prototype) -->
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span>SYS.STATUS: SECURE</span>
+        </div>
+        <h1 class="card-title">OPERATOR SECURITY PORTAL</h1>
+        <div class="card-subtitle">DECOY DEPLOYMENT VECTOR // AXIS-01</div>
+      </div>
+
+      <div class="card-body">
+        <div class="input-group">
+          <label class="input-label" for="op-id">OPERATOR IDENTITY</label>
+          <div class="input-wrapper">
+            <input type="text" id="op-id" value="OP_KUMAR_A9" readonly>
+            <span class="input-icon">SECURE</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="passkey">AUTHENTICATION VECTOR</label>
+          <div class="input-wrapper">
+            <input type="password" id="passkey" value="••••••••••••••••" readonly>
+            <span class="input-icon">KEYCARD</span>
+          </div>
+        </div>
+
+        <div class="stats-panel">
+          <div class="stat-item">
+            <span class="stat-name">Integrity</span>
+            <span class="stat-val">99.98%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-name">Sync Rate</span>
+            <span class="stat-val highlight">1.82 Gb/s</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-action">
+        <button class="portal-btn" onclick="alert('Access Protocol Active // Initializing uplink sequence...')">INITIALIZE UPLINK</button>
+      </div>
+
+      <div class="card-footer">
+        <span>SECURITY AUTH: LVL 4</span>
+        <span class="footer-warning">RESTRICTED TERMINAL</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Configuration
+    const width = 1920;
+    const height = 1080;
+
+    // Defined targets for path-navigation obstacles
+    const obsA = { x: 691.0, y: 297.5 }; // Near grid cell col=10, row=9
+    const obsB = { x: 1283.3, y: 429.8 }; // Near grid cell col=19, row=13
+
+    // --- 1. Hexagon Generation ---
+    const hexGroup = document.getElementById('hex-field');
+    const r = 38; // base hexagon radius
+    const f = 0.58; // vertical tilt/flattening factor (gives perspective)
+    const hMin = 10; // minimum extrusion height
+    const hMax = 28; // maximum extrusion height
+
+    const colWidth = Math.sqrt(3) * r;
+    const rowHeight = 1.5 * r * f;
+
+    const cols = Math.ceil(width / colWidth) + 2;
+    const rows = Math.ceil(height / rowHeight) + 2;
+
+    const hexagons = [];
+
+    // Grid placement with density gradient
+    for (let row = -2; row < rows; row++) {
+      for (let col = -2; col < cols; col++) {
+        let x = col * colWidth;
+        if (row % 2 !== 0) {
+          x += colWidth / 2;
+        }
+        let y = row * rowHeight;
+
+        // Snappers for Obstacles to guarantee they align to the grid and exist
+        let isObstacleNode = false;
+        let obstacleType = null; // 'amber' or 'cyan'
+
+        // Detect if close to predefined obstacle nodes
+        const distToA = Math.hypot(x - obsA.x, y - obsA.y);
+        const distToB = Math.hypot(x - obsB.x, y - obsB.y);
+
+        if (distToA < 15) {
+          x = obsA.x;
+          y = obsA.y;
+          isObstacleNode = true;
+          obstacleType = 'amber';
+        } else if (distToB < 15) {
+          x = obsB.x;
+          y = obsB.y;
+          isObstacleNode = true;
+          obstacleType = 'cyan';
+        }
+
+        // Minor position jitter for non-obstacle nodes to break rigidity
+        if (!isObstacleNode) {
+          x += (Math.random() - 0.5) * 5;
+          y += (Math.random() - 0.5) * 5;
+        }
+
+        // Normalized X coordinate for density mapping
+        const tx = x / width;
+
+        // Probability function: dense on left third, thinning out toward right (identical to prev prototype)
+        let prob = 0;
+        if (tx < 0.25) {
+          prob = 0.88;
+        } else if (tx < 0.6) {
+          prob = 0.88 - ((tx - 0.25) / 0.35) * 0.73;
+        } else if (tx < 0.85) {
+          prob = 0.15 - ((tx - 0.6) / 0.25) * 0.13;
+        } else {
+          prob = 0.02;
+        }
+
+        // Guarantee that the obstacle nodes are always rendered
+        if (isObstacleNode) {
+          prob = 1.0;
+        }
+
+        if (Math.random() > prob) continue;
+
+        // Taller columns on the left, force max height for obstacle nodes
+        const heightFactor = 1 - tx;
+        let h = hMin + Math.random() * (hMax - hMin) * (0.3 + 0.7 * heightFactor);
+        
+        if (isObstacleNode) {
+          h = 32; // Raised node
+        }
+
+        hexagons.push({ x, y, r, h, f, isObstacleNode, obstacleType });
+      }
+    }
+
+    // Sort hexagons by Y coordinate (back-to-front Painter's Algorithm)
+    hexagons.sort((a, b) => a.y - b.y);
+
+    // Build the SVG paths for 3D hexagons
+    let hexContent = '';
+    hexagons.forEach(hex => {
+      const { x, y, r, h, f, isObstacleNode, obstacleType } = hex;
+      const dx = r * Math.sqrt(3) / 2;
+      const dy = r * f / 2;
+      const ry = r * f;
+
+      // Top face vertices
+      const p0 = { x: x, y: y - ry };
+      const p1 = { x: x + dx, y: y - dy };
+      const p2 = { x: x + dx, y: y + dy };
+      const p3 = { x: x, y: y + ry };
+      const p4 = { x: x - dx, y: y + dy };
+      const p5 = { x: x - dx, y: y - dy };
+
+      // Extruded side vertices
+      const p2_b = { x: p2.x, y: p2.y + h };
+      const p3_b = { x: p3.x, y: p3.y + h };
+      const p4_b = { x: p4.x, y: p4.y + h };
+
+      // SVG path segments
+      const topPath = `M ${p5.x},${p5.y} L ${p0.x},${p0.y} L ${p1.x},${p1.y} L ${p2.x},${p2.y} L ${p3.x},${p3.y} L ${p4.x},${p4.y} Z`;
+      const sideLeftPath = `M ${p4.x},${p4.y} L ${p3.x},${p3.y} L ${p3_b.x},${p3_b.y} L ${p4_b.x},${p4_b.y} Z`;
+      const sideRightPath = `M ${p3.x},${p3.y} L ${p2.x},${p2.y} L ${p2_b.x},${p2_b.y} L ${p3_b.x},${p3_b.y} Z`;
+
+      // Determine colors. Obstacles have high-contrast glowing rims and faces.
+      let topFill = 'url(#top-grad)';
+      let topStroke = 'rgba(255,255,255,0.06)';
+      let strokeWidth = 0.8;
+
+      if (isObstacleNode) {
+        if (obstacleType === 'amber') {
+          topFill = 'url(#active-amber-grad)';
+          topStroke = 'rgba(255, 191, 0, 0.75)';
+          strokeWidth = 1.4;
+        } else if (obstacleType === 'cyan') {
+          topFill = 'url(#active-cyan-grad)';
+          topStroke = 'rgba(0, 229, 255, 0.75)';
+          strokeWidth = 1.4;
+        }
+      }
+
+      // Render group
+      hexContent += `
+        <g class="hex-column">
+          <path d="${sideLeftPath}" fill="url(#side-left-grad)" stroke="#1a1a20" stroke-width="0.5" />
+          <path d="${sideRightPath}" fill="url(#side-right-grad)" stroke="#141418" stroke-width="0.5" />
+          <path d="${topPath}" fill="${topFill}" stroke="${topStroke}" stroke-width="${strokeWidth}" />
+          ${isObstacleNode ? `
+            <!-- Small active terminal marker inside the obstacle top face -->
+            <circle cx="${x}" cy="${y}" r="3.5" fill="${obstacleType === 'amber' ? '#ffb300' : '#00e5ff'}" opacity="0.9" />
+          ` : ''}
+        </g>
+      `;
+    });
+    hexGroup.innerHTML = hexContent;
+
+
+    // --- 2. Winding/Branching Route Curves ---
+    // Generates a path that has rounded corners on joints to look like a precise vector/data trace.
+    function generateRoundedPath(points, radius = 35) {
+      if (points.length === 0) return '';
+      let d = `M ${points[0].x} ${points[0].y}`;
+      for (let i = 1; i < points.length - 1; i++) {
+        const pPrev = points[i - 1];
+        const pCurr = points[i];
+        const pNext = points[i + 1];
+        
+        const v1 = { x: pPrev.x - pCurr.x, y: pPrev.y - pCurr.y };
+        const v2 = { x: pNext.x - pCurr.x, y: pNext.y - pCurr.y };
+        
+        const d1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+        const d2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+        
+        const r = Math.min(radius, d1 / 2, d2 / 2);
+        
+        const pStart = {
+          x: pCurr.x + (v1.x / d1) * r,
+          y: pCurr.y + (v1.y / d1) * r
+        };
+        const pEnd = {
+          x: pCurr.x + (v2.x / d2) * r,
+          y: pCurr.y + (v2.y / d2) * r
+        };
+        
+        d += ` L ${pStart.x} ${pStart.y}`;
+        d += ` Q ${pCurr.x} ${pCurr.y}, ${pEnd.x} ${pEnd.y}`;
+      }
+      d += ` L ${points[points.length - 1].x} ${points[points.length - 1].y}`;
+      return d;
+    }
+
+    // Nodes for Ribbon A (Amber-Gold route, bends below Obstacle A at x=691, y=297)
+    // Crosses Ribbon B at (450, 520) and (1150, 480)
+    const pointsA = [
+      { x: -50, y: 420 },
+      { x: 220, y: 420 },
+      { x: 450, y: 520 }, // Crossing 1
+      { x: 580, y: 420 },
+      { x: 630, y: 375 },
+      { x: 691, y: 382 }, // Bending around bottom of Obstacle A (691, 297.5)
+      { x: 755, y: 340 },
+      { x: 920, y: 340 },
+      { x: 1150, y: 480 }, // Crossing 2
+      { x: 1350, y: 540 },
+      { x: 1600, y: 420 },
+      { x: 1980, y: 450 }
+    ];
+
+    // Nodes for Ribbon B (Cyan route, bends above Obstacle B at x=1283, y=429)
+    const pointsB = [
+      { x: -50, y: 600 },
+      { x: 220, y: 600 },
+      { x: 450, y: 520 }, // Crossing 1
+      { x: 600, y: 560 },
+      { x: 820, y: 650 },
+      { x: 1000, y: 550 },
+      { x: 1150, y: 480 }, // Crossing 2
+      { x: 1225, y: 355 },
+      { x: 1283, y: 342 }, // Bending around top of Obstacle B (1283.3, 429.8)
+      { x: 1345, y: 370 },
+      { x: 1550, y: 580 },
+      { x: 1750, y: 540 },
+      { x: 1980, y: 580 }
+    ];
+
+    // Generate path data strings
+    const pathA = generateRoundedPath(pointsA, 45);
+    const pathB = generateRoundedPath(pointsB, 45);
+
+    // Apply paths to Amber Ribbon
+    document.getElementById('amber-glow').setAttribute('d', pathA);
+    document.getElementById('amber-core').setAttribute('d', pathA);
+
+    // Apply paths to Cyan Ribbon
+    document.getElementById('cyan-glow').setAttribute('d', pathB);
+    document.getElementById('cyan-core').setAttribute('d', pathB);
+
+    // Apply paths to Violet Ribbon (uses path A geometry, but masked by path B's envelope)
+    document.getElementById('violet-glow').setAttribute('d', pathA);
+    document.getElementById('violet-core').setAttribute('d', pathA);
+
+    // Update mask components with Cyan ribbon geometry to compute intersection
+    document.getElementById('mask-glow-path').setAttribute('d', pathB);
+    document.getElementById('mask-core-path').setAttribute('d', pathB);
+  </script>
+</body>
+</html>

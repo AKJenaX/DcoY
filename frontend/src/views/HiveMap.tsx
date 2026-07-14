@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { api } from "../services/api";
 import { ShieldAlert, Server, User, AlertOctagon, HelpCircle, Activity, Sparkles, RefreshCw } from "lucide-react";
+import { EnergyRibbon } from "../components/EnergyRibbon";
 
 interface Node {
   id: string;
@@ -201,7 +202,7 @@ export const HiveMap: React.FC<HiveMapProps> = ({ initialNodeId, onClearInitialN
       case "Indicator":
         return <ShieldAlert className="w-4 h-4 text-red-500" />;
       case "Case":
-        return <AlertOctagon className="w-4 h-4 text-purple-400" />;
+        return <AlertOctagon className="w-4 h-4 text-cyan-400" />;
       default:
         return <HelpCircle className="w-4 h-4 text-gray-400" />;
     }
@@ -327,38 +328,41 @@ export const HiveMap: React.FC<HiveMapProps> = ({ initialNodeId, onClearInitialN
               const tNode = nodes.find((n) => n.id === edge.target);
               if (!sNode || !tNode) return null;
 
-              // Check if edge is in the computed shortest path
-              const sourceIdx = shortestPath.indexOf(edge.source);
-              const targetIdx = shortestPath.indexOf(edge.target);
-              const isOnPath = sourceIdx !== -1 && targetIdx !== -1 && Math.abs(sourceIdx - targetIdx) === 1;
-
               return (
-                <g key={idx}>
-                  <line
-                    x1={sNode.x}
-                    y1={sNode.y}
-                    x2={tNode.x}
-                    y2={tNode.y}
-                    stroke={isOnPath ? "#f5a623" : "rgba(255, 255, 255, 0.08)"}
-                    strokeWidth={isOnPath ? 3.5 : 1.5}
-                    className={isOnPath ? "stroke-dash-animation" : ""}
-                  />
-                  {isOnPath && (
-                    <circle
-                      r="4"
-                      fill="#00e5ff"
-                      className="animated-particle"
-                    >
-                      <animateMotion
-                        path={`M ${sNode.x} ${sNode.y} L ${tNode.x} ${tNode.y}`}
-                        dur="2.5s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-                  )}
-                </g>
+                <line
+                  key={idx}
+                  x1={sNode.x}
+                  y1={sNode.y}
+                  x2={tNode.x}
+                  y2={tNode.y}
+                  stroke="rgba(255, 255, 255, 0.08)"
+                  strokeWidth={1.5}
+                />
               );
             })}
+
+            {/* Dijkstra Path Energy Ribbon Tracing */}
+            {(() => {
+              const pathPoints = shortestPath
+                .map((nodeId) => nodes.find((n) => n.id === nodeId))
+                .filter((n): n is any => n !== undefined && n.x !== undefined && n.y !== undefined)
+                .map((n) => ({ x: n.x, y: n.y }));
+
+              if (pathPoints.length > 1) {
+                return (
+                  <EnergyRibbon
+                    raw={true}
+                    animate={true}
+                    mode="map"
+                    customPointsA={pathPoints}
+                    customPointsB={pathPoints.map((p) => ({ x: p.x + 6, y: p.y + 6 }))}
+                    width={720}
+                    height={520}
+                  />
+                );
+              }
+              return null;
+            })()}
 
             {/* Render nodes as hexagons */}
             {nodes.map((node) => {

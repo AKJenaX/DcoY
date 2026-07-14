@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { Hexagon } from "../components/Hexagon";
 import { Bug, Terminal, Layers } from "lucide-react";
+import { GlassPanel } from "../components/GlassPanel";
 
 interface Decoy {
   id: string;
@@ -213,7 +214,7 @@ export const DeceptionGrid: React.FC = () => {
         </div>
 
         {/* Live Attack Engagement Inspector (1/3 width) */}
-        <div className="faceted-panel p-5 h-[570px] flex flex-col bg-[#111827]">
+        <GlassPanel borderColor="cyan" className="p-5 h-[570px] flex flex-col">
           {selectedDecoy ? (
             <div className="space-y-4 flex-grow flex flex-col justify-between">
               <div>
@@ -265,7 +266,7 @@ export const DeceptionGrid: React.FC = () => {
               <span className="text-xs">Select decoy node to inspect payloads</span>
             </div>
           )}
-        </div>
+        </GlassPanel>
       </div>
     </div>
   );

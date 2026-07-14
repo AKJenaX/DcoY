@@ -125,7 +125,7 @@ export const ThreatIntel: React.FC = () => {
             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Top Attack Vector</div>
             <div className="text-sm font-black text-white mt-2 truncate w-48">{intelKpis.top_adversary_technique}</div>
           </div>
-          <Globe className="w-8 h-8 text-purple-400 opacity-80" />
+          <Globe className="w-8 h-8 text-cyan-400 opacity-80" />
         </div>
       </div>
 

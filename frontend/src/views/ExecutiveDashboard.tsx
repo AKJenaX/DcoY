@@ -183,7 +183,7 @@ export const ExecutiveDashboard: React.FC = () => {
           ["Critical Alerts (24h)", kpis.critical_alerts_24h, "Incoming threats", "border-red-500/20 text-red-500"],
           ["Detection Coverage", `${kpis.detection_coverage}%`, "MITRE Techniques", "border-green-500/20 text-green-400"],
           ["MTTI (Investigate)", `${kpis.mtti_hours}h`, "Avg triage latency", "border-cyan-500/20 text-cyan-400"],
-          ["MTTR (Resolution)", `${kpis.mttr_hours}h`, "Mean mitigation time", "border-purple-500/20 text-purple-400"],
+          ["MTTR (Resolution)", `${kpis.mttr_hours}h`, "Mean mitigation time", "border-cyan-500/20 text-cyan-400"],
           ["AI Confidence Avg", `${kpis.ai_confidence_average}%`, "Evidence verification", "border-cyan-500/20 text-cyan-400"]
         ].map(([label, val, sub, borderClass]) => (
           <div key={label} className={`faceted-panel p-4 bg-[#0a0f18]/80 border text-center font-mono ${borderClass}`}>

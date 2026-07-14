@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { Clipboard, Shield, MessageSquare, Plus, Trash2, ArrowLeft, Sparkles, Send } from "lucide-react";
+import { GlassPanel } from "../components/GlassPanel";
 
 interface Case {
   id: string;
@@ -151,12 +152,12 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
       )}
 
       {!selectedCaseId && (
-        <div className="faceted-panel p-5 min-h-[220px] grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-5 overflow-hidden">
+        <GlassPanel borderColor="cyan" className="p-5 min-h-[220px] grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-5 overflow-hidden">
           <div className="border-r border-gray-800 pr-5">
             <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Incident Chronology</span>
             <div className="mt-3 text-3xl font-black font-mono text-white">{cases.length || 3}</div>
             <div className="text-[10px] uppercase tracking-widest text-gray-500">Active ledgers</div>
-            <div className="mt-5 rounded border border-amber-500/20 bg-amber-950/10 p-3 text-xs text-gray-300">
+            <div className="mt-5 rounded border border-amber-500/20 bg-amber-950/10 p-3 text-xs text-gray-300 font-sans">
               Timeline-first triage highlights escalation order before analyst assignment.
             </div>
           </div>
@@ -180,14 +181,14 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
               </div>
             ))}
           </div>
-        </div>
+        </GlassPanel>
       )}
 
       {/* Main Workspace splits */}
       {!selectedCaseId ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left / Center list of cases */}
-          <div className="lg:col-span-2 faceted-panel p-5 space-y-4">
+          <GlassPanel borderColor="amber" className="lg:col-span-2 p-5 space-y-4">
             <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500">Case Incident Ledger</h2>
             
             <div className="space-y-2">
@@ -224,10 +225,10 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
                 ))
               )}
             </div>
-          </div>
+          </GlassPanel>
 
           {/* Right column: Create a new case */}
-          <div className="faceted-panel p-5 space-y-4 h-fit">
+          <GlassPanel borderColor="cyan" className="p-5 space-y-4 h-fit">
             <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400">Escalate Case</h2>
             <form onSubmit={handleCreateCase} className="space-y-3">
               <div className="space-y-1">
@@ -247,7 +248,7 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
                 <Plus className="w-4 h-4" /> Spin New Case
               </button>
             </form>
-          </div>
+          </GlassPanel>
         </div>
       ) : (
         /* Case details expanded split view */
@@ -272,16 +273,16 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Evidence Log list */}
-              <div className="faceted-panel p-5 space-y-3 flex flex-col h-[350px]">
+              <GlassPanel borderColor="amber" className="p-5 space-y-3 flex flex-col h-[350px]">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 flex items-center gap-1.5">
                   <Clipboard className="w-3.5 h-3.5" /> Evidence Ledger
                 </h3>
                 <div className="flex-1 overflow-y-auto space-y-2 font-mono text-xs pr-1 scrollbar-thin">
                   {!caseDetails?.evidence || caseDetails.evidence.length === 0 ? (
-                    <div className="text-gray-500 text-center py-10">No evidence logs registered to case database.</div>
+                    <div className="text-gray-500 text-center py-10 font-sans">No evidence logs registered to case database.</div>
                   ) : (
                     caseDetails.evidence.map((ev: any, idx: number) => (
-                      <div key={idx} className="p-2.5 bg-[#050b14] border border-gray-800 rounded">
+                      <div key={idx} className="p-2.5 bg-[#050b14]/90 border border-gray-800 rounded">
                         <div className="text-[10px] text-gray-400 mb-1">{ev.timestamp || "2026-07-13 12:00:00"}</div>
                         <div className="text-white font-semibold">{ev.event}</div>
                         <div className="flex justify-between items-center mt-1 text-[10px] text-gray-400">
@@ -292,16 +293,16 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
                     ))
                   )}
                 </div>
-              </div>
+              </GlassPanel>
 
               {/* Chronological Timeline track */}
-              <div className="faceted-panel p-5 space-y-3 flex flex-col h-[350px]">
+              <GlassPanel borderColor="cyan" className="p-5 space-y-3 flex flex-col h-[350px]">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
                   <Shield className="w-3.5 h-3.5" /> Incident timeline track
                 </h3>
                 <div className="flex-1 overflow-y-auto space-y-3 relative pl-4 border-l border-gray-800 pr-1 scrollbar-thin">
                   {!caseDetails?.timeline || caseDetails.timeline.length === 0 ? (
-                    <div className="text-gray-500 text-center py-10">No chronological timeline logs registered.</div>
+                    <div className="text-gray-500 text-center py-10 font-sans">No chronological timeline logs registered.</div>
                   ) : (
                     caseDetails.timeline.map((tl: any, idx: number) => (
                       <div key={idx} className="relative space-y-1">
@@ -309,30 +310,30 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
                         <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-cyan-400 border border-[#0d0f14]"></div>
                         <div className="text-[9px] font-mono text-gray-400">{tl.timestamp}</div>
                         <div className="text-xs text-white font-semibold">{tl.event}</div>
-                        <p className="text-[11px] text-gray-400">{tl.details}</p>
+                        <p className="text-[11px] text-gray-400 font-sans">{tl.details}</p>
                       </div>
                     ))
                   )}
                 </div>
-              </div>
+              </GlassPanel>
             </div>
 
             {/* Analyst notes thread */}
-            <div className="faceted-panel p-5 space-y-4">
+            <GlassPanel borderColor="amber" className="p-5 space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5" /> Analyst notes thread
               </h3>
               <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
                 {!caseDetails?.notes_list || caseDetails.notes_list.length === 0 ? (
-                  <div className="text-gray-500 text-xs py-2">No analyst notes recorded yet.</div>
+                  <div className="text-gray-500 text-xs py-2 font-sans">No analyst notes recorded yet.</div>
                 ) : (
                   caseDetails.notes_list.map((note: any, idx: number) => (
-                    <div key={idx} className="p-3 bg-[#111827]/30 border border-gray-800 rounded-lg">
+                    <div key={idx} className="p-3 bg-[#111827]/50 border border-gray-800 rounded-lg">
                       <div className="flex justify-between items-center text-[10px] text-gray-400 mb-1">
                         <span className="font-bold text-amber-500">{note.author}</span>
                         <span>{note.created_at || "Just now"}</span>
                       </div>
-                      <p className="text-xs text-gray-200">{note.content}</p>
+                      <p className="text-xs text-gray-200 font-sans">{note.content}</p>
                     </div>
                   ))
                 )}
@@ -343,20 +344,20 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
                   placeholder="Record an analyst note / triage summary..."
                   value={newNoteText}
                   onChange={(e) => setNewNoteText(e.target.value)}
-                  className="flex-1 bg-[#111827] border border-gray-800 rounded-md px-3 py-1.5 text-xs text-white outline-none focus:border-amber-500"
+                  className="flex-1 bg-[#111827]/70 border border-gray-800 rounded-md px-3 py-1.5 text-xs text-white outline-none focus:border-amber-500"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-[#111827] hover:bg-gray-800 border border-gray-800 hover:border-gray-700 rounded-md text-xs font-semibold text-white flex items-center gap-1 transition-all"
+                  className="px-4 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 hover:border-amber-500 rounded-md text-xs font-semibold text-amber-400 flex items-center gap-1 transition-all"
                 >
                   <Send className="w-3.5 h-3.5" /> Post
                 </button>
               </form>
-            </div>
+            </GlassPanel>
           </div>
 
           {/* Right column: AI Copilot Strategy Panel (1/4 width) */}
-          <div className="faceted-panel p-5 flex flex-col justify-between h-fit space-y-4">
+          <GlassPanel borderColor="cyan" className="p-5 flex flex-col justify-between h-fit space-y-4">
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" /> AI Incident Copilot
@@ -429,7 +430,7 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
             >
               <Trash2 className="w-3.5 h-3.5" /> Purge Case Ledger
             </button>
-          </div>
+            </GlassPanel>
         </div>
       )}
     </div>
