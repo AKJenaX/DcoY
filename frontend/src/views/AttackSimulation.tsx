@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { api } from "../services/api";
 import { useRealtimeChannel } from "../hooks/useRealtimeChannel";
-import { Target, Play, Cpu, Terminal, Network, CheckCircle } from "lucide-react";
+import { Play, Cpu } from "lucide-react";
+import { GlassPanel } from "../components/GlassPanel";
 
 interface SimulationStep {
   timestamp: string;
@@ -120,28 +121,29 @@ export const AttackSimulation: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#202020]/40 pb-3">
+      <div className="flex justify-between items-center pb-4 page-header-glass">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <Target className="w-6 h-6 text-amber-500" />
-            Adversary Attack Simulation
-          </h1>
-          <p className="text-sm text-gray-400">Coordinated purple-team playbook simulations and detection testing</p>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-cyan-400 uppercase tracking-widest mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]"></span>
+            CONSOLE.STATUS // ADVERSARY_SIMULATOR_STANDBY
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-white font-mono uppercase">Adversary Attack Simulation</h1>
+          <p className="text-xs text-gray-400">Coordinated purple-team playbook simulations and detection testing</p>
         </div>
         <div>
           {simStatus === "connected" && (
-            <span className="flex items-center gap-1.5 text-[10px] bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded text-green-400 font-bold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span> Simulation Link Connected
+            <span className="flex items-center gap-1.5 text-[10px] bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded text-green-400 font-bold uppercase tracking-wider font-mono">
+              <span className="w-1.5 h-1.5 bg-[#00ff66] rounded-full animate-pulse shadow-[0_0_6px_#00ff66]"></span> Simulation Link Connected
             </span>
           )}
           {(simStatus === "connecting" || simStatus === "reconnecting") && (
-            <span className="flex items-center gap-1.5 text-[10px] bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded text-amber-400 font-bold uppercase tracking-wider animate-pulse">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span> WS Link Reconnecting...
+            <span className="flex items-center gap-1.5 text-[10px] bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded text-amber-400 font-bold uppercase tracking-wider animate-pulse font-mono">
+              <span className="w-1.5 h-1.5 bg-[#ffb300] rounded-full animate-pulse shadow-[0_0_6px_#ffb300]"></span> WS Link Reconnecting...
             </span>
           )}
           {simStatus === "polling" && (
-            <span className="flex items-center gap-1.5 text-[10px] bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded text-cyan-400 font-bold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce"></span> HTTP Polling Mode
+            <span className="flex items-center gap-1.5 text-[10px] bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded text-cyan-400 font-bold uppercase tracking-wider font-mono">
+              <span className="w-1.5 h-1.5 bg-[#00e5ff] rounded-full animate-pulse shadow-[0_0_6px_#00e5ff]"></span> HTTP Polling Mode
             </span>
           )}
         </div>
@@ -159,10 +161,11 @@ export const AttackSimulation: React.FC = () => {
         {/* Left Side: Controller Form & Active Progress HUD */}
         <div className="space-y-4 lg:col-span-1">
           {/* Controller Card */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500 border-b border-amber-500/15 pb-2">
-              Simulation Controller
-            </h2>
+          <GlassPanel borderColor="cyan" className="p-5 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 border-b border-amber-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+              SIM.CONTROL // RUN CONFIG
+            </div>
             
             <div className="space-y-1.5">
               <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Select Attack Scenario</label>
@@ -186,13 +189,14 @@ export const AttackSimulation: React.FC = () => {
               <Play className="w-3.5 h-3.5 fill-black" />
               {currentSim?.status === "running" ? "Simulation Running..." : "Execute Simulation"}
             </button>
-          </div>
+          </GlassPanel>
 
           {/* Active Simulation Step HUD */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-4 flex-1">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2">
-              Active Playbook Progress
-            </h2>
+          <GlassPanel borderColor="cyan" className="p-5 space-y-4 flex-1">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              SIM.PROGRESS // ACTIVE HUD
+            </div>
 
             {currentSim && (currentSim.status === "running" || currentSim.status === "started") ? (
               <div className="space-y-4 font-mono text-xs">
@@ -245,18 +249,18 @@ export const AttackSimulation: React.FC = () => {
                 <span className="text-[9px] mt-1 text-gray-600">Select a scenario above to run automated defensive validation.</span>
               </div>
             )}
-          </div>
+          </GlassPanel>
         </div>
 
         {/* Right Side: Visual Graph & scrolling logs / completed stats (2/3 width) */}
         <div className="space-y-4 lg:col-span-2">
           
           {/* Mini-Network Map Panel */}
-          <div className="faceted-panel p-5 bg-[#050b14]/70 border border-cyan-500/10 flex flex-col justify-between">
-            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400/80 mb-3 block flex items-center gap-1.5">
-              <Network className="w-4 h-4 text-cyan-400" />
-              Live Simulation Subnet Vectors
-            </span>
+          <GlassPanel borderColor="cyan" className="p-5 flex flex-col justify-between">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 mb-3 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              SIM.TOPOLOGY // SUBNET VECTORS
+            </div>
 
             <div className="w-full aspect-[2/1] min-h-[220px] max-h-[300px]">
               <svg viewBox="0 0 500 250" className="w-full h-full">
@@ -328,17 +332,17 @@ export const AttackSimulation: React.FC = () => {
                 })}
               </svg>
             </div>
-          </div>
+          </GlassPanel>
 
           {/* Results Summary or Timeline Console logs */}
           {currentSim?.status === "completed" && currentSim.results ? (
             /* Completed stats view */
-            <div className="faceted-panel p-5 bg-[#0a0f18]/80 border border-green-500/20 space-y-4 animate-fade-in">
+            <GlassPanel borderColor="cyan" className="p-5 space-y-4 animate-fade-in">
               <div className="flex justify-between items-center border-b border-green-500/20 pb-2">
-                <h3 className="text-xs font-black uppercase text-green-400 font-mono tracking-wider flex items-center gap-1.5">
-                  <CheckCircle className="w-4 h-4" />
-                  Simulation Complete Results
-                </h3>
+                <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-green-400 uppercase">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_6px_#00ff66]"></span>
+                  SIM.RESULTS // SCORE SUMMARY
+                </div>
                 <span className="text-[10px] bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded text-green-400 font-mono">
                   CONFIDENCE: {Math.round(currentSim.results.executive_summary.simulation_score)}%
                 </span>
@@ -383,31 +387,31 @@ export const AttackSimulation: React.FC = () => {
                   </ul>
                 </div>
               </div>
-            </div>
+            </GlassPanel>
           ) : (
             /* Log timeline Console */
-            <div className="faceted-panel p-5 bg-[#0a0f18]/90 h-[200px] flex flex-col">
+            <GlassPanel borderColor="cyan" className="p-5 h-[200px] flex flex-col">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
-                  <Terminal className="w-4 h-4 text-cyan-400" />
-                  Live Event Telemetry Log
-                </span>
+                <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+                  <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+                  SIM.LOG // LIVE EVENT TELEMETRY
+                </div>
               </div>
-              <div className="flex-1 bg-[#050b14] border border-gray-900 rounded p-3 font-mono text-[11px] text-gray-400 overflow-y-auto space-y-1">
+              <div className="flex-1 bg-[#050b14] border border-gray-900 rounded p-3 font-mono text-[11px] text-gray-400 overflow-y-auto space-y-1 scrollbar-thin">
                 {!currentSim ? (
-                  <div className="text-gray-600 text-center py-10">Simulation log waiting...</div>
+                  <div className="text-gray-600 text-center py-10 font-sans">Simulation log waiting...</div>
                 ) : (
                   <>
-                    <div className="text-gray-500">[{new Date().toLocaleTimeString()}] [SIM_ENGINE] Inbound scenario session: initialized</div>
+                    <div className="text-gray-500 font-mono">[{new Date().toLocaleTimeString()}] [SIM_ENGINE] Inbound scenario session: initialized</div>
                     {currentSim.event && (
-                      <div className="text-amber-500">
+                      <div className="text-amber-500 font-mono">
                         [{new Date(currentSim.event.timestamp).toLocaleTimeString()}] [STAGE_{currentSim.step}] {currentSim.event.details?.phase?.toUpperCase()}: {currentSim.event.technique} targeting {currentSim.event.host} ({currentSim.event.detection_status})
                       </div>
                     )}
                   </>
                 )}
               </div>
-            </div>
+            </GlassPanel>
           )}
 
         </div>

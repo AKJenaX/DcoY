@@ -3,6 +3,7 @@ import { api } from "../services/api";
 import { Hexagon } from "../components/Hexagon";
 import { SvgLineChart } from "../components/charts/SvgLineChart";
 import { Activity, ShieldCheck, Database, ChevronDown, ChevronRight, Info, Cpu, Play, Trash2 } from "lucide-react";
+import { GlassPanel } from "../components/GlassPanel";
 
 interface HealthData {
   uptime_seconds: number;
@@ -143,13 +144,14 @@ export const PlatformHealth: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#202020]/40 pb-3">
+      <div className="flex justify-between items-center pb-3 page-header-glass">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <Activity className="w-6 h-6 text-cyan-400" />
-            Platform Diagnostics & Health
-          </h1>
-          <p className="text-sm text-gray-400">Observability middleware latency metrics, database health, and API catalog</p>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-cyan-400 uppercase tracking-widest mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]"></span>
+            CONSOLE.STATUS // SYSTEM_DIAGNOSTICS_ACTIVE
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-white font-mono uppercase">Platform Diagnostics & Health</h1>
+          <p className="text-xs text-gray-400">Observability middleware latency metrics, database health, and API catalog</p>
         </div>
         <div className="text-xs font-mono bg-[#050b14]/80 px-3 py-1.5 border border-gray-800 rounded text-gray-400">
           SYSTEM UP: <span className="text-green-400 font-bold">{health ? formatUptime(health.uptime_seconds) : "0s"}</span>
@@ -163,54 +165,62 @@ export const PlatformHealth: React.FC = () => {
       )}
 
       {/* Hex KPIs Dashboard grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center py-1 perspective-container w-full">
-        <div className="tile-3d-elevation">
-          <Hexagon 
-            size={116} 
-            glowColor={metrics.average_latency_ms > 50 ? "amber" : "cyan"} 
-            pulse={metrics.average_latency_ms > 50}
-          >
-            <Activity className="w-5 h-5 text-cyan-400 mb-1" />
-            <span className="text-xl font-extrabold text-white">{metrics.average_latency_ms} ms</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 text-center">Avg API Latency</span>
-          </Hexagon>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center py-1 w-full">
+        <GlassPanel borderColor="cyan" showBrackets={true} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon 
+              size={116} 
+              glowColor={metrics.average_latency_ms > 50 ? "amber" : "cyan"} 
+              pulse={metrics.average_latency_ms > 50}
+            >
+              <Activity className="w-5 h-5 text-cyan-400 mb-1" />
+              <span className="text-xl font-extrabold text-white">{metrics.average_latency_ms} ms</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 text-center">Avg API Latency</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
 
-        <div className="tile-3d-elevation">
-          <Hexagon 
-            size={116} 
-            glowColor="cyan"
-            pulse={false}
-          >
-            <Cpu className="w-5 h-5 text-cyan-400 mb-1" />
-            <span className="text-xl font-extrabold text-white">{metrics.cache_efficiency_pct}%</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 text-center">Cache Efficiency</span>
-          </Hexagon>
-        </div>
+        <GlassPanel borderColor="cyan" showBrackets={true} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon 
+              size={116} 
+              glowColor="cyan"
+              pulse={false}
+            >
+              <Cpu className="w-5 h-5 text-cyan-400 mb-1" />
+              <span className="text-xl font-extrabold text-white">{metrics.cache_efficiency_pct}%</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 text-center">Cache Efficiency</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
 
-        <div className="tile-3d-elevation">
-          <Hexagon 
-            size={116} 
-            glowColor="green"
-            pulse={false}
-          >
-            <ShieldCheck className="w-5 h-5 text-green-400 mb-1" />
-            <span className="text-xl font-extrabold text-white">{metrics.enabled_rules} / {metrics.active_rules}</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 text-center">Active Rules</span>
-          </Hexagon>
-        </div>
+        <GlassPanel borderColor="cyan" showBrackets={true} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon 
+              size={116} 
+              glowColor="green"
+              pulse={false}
+            >
+              <ShieldCheck className="w-5 h-5 text-green-400 mb-1" />
+              <span className="text-xl font-extrabold text-white">{metrics.enabled_rules} / {metrics.active_rules}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 text-center">Active Rules</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
 
-        <div className="tile-3d-elevation">
-          <Hexagon 
-            size={116} 
-            glowColor="cyan"
-            pulse={false}
-          >
-            <Database className="w-5 h-5 text-cyan-400 mb-1" />
-            <span className="text-xl font-extrabold text-white">{metrics.monitored_assets}</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 text-center">Monitored Assets</span>
-          </Hexagon>
-        </div>
+        <GlassPanel borderColor="cyan" showBrackets={true} className="p-3 w-full flex justify-center items-center">
+          <div className="tile-3d-elevation">
+            <Hexagon 
+              size={116} 
+              glowColor="cyan"
+              pulse={false}
+            >
+              <Database className="w-5 h-5 text-cyan-400 mb-1" />
+              <span className="text-xl font-extrabold text-white">{metrics.monitored_assets}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 text-center">Monitored Assets</span>
+            </Hexagon>
+          </div>
+        </GlassPanel>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -218,10 +228,11 @@ export const PlatformHealth: React.FC = () => {
         <div className="xl:col-span-2 space-y-6">
           
           {/* Latency History Chart */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2">
-              Observability API Request Latency (ms)
-            </h2>
+          <GlassPanel borderColor="cyan" className="p-5 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              HEALTH.LATENCY // API RESPONSE
+            </div>
             {health?.latency_history && health.latency_history.length > 0 ? (
               <div className="w-full">
                 <SvgLineChart 
@@ -234,13 +245,14 @@ export const PlatformHealth: React.FC = () => {
             ) : (
               <div className="text-center py-10 text-gray-500 text-xs font-mono">No latency log series computed yet.</div>
             )}
-          </div>
+          </GlassPanel>
 
           {/* Interactive Demo Orchestrator */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500 border-b border-amber-500/15 pb-2">
-              🎮 Interactive Demo Orchestrator
-            </h2>
+          <GlassPanel borderColor="amber" className="p-5 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 border-b border-amber-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+              ORCHESTRATOR.DEMO // KINETIC TRIGGER
+            </div>
             <p className="text-xs text-gray-400 leading-relaxed font-mono">
               Simulate high-velocity attacks (brute-forcing SSH, password spraying, asset compromise) to trigger deception rules and test SOC responsiveness.
             </p>
@@ -265,13 +277,14 @@ export const PlatformHealth: React.FC = () => {
                 [SYSTEM] {demoMessage}
               </div>
             )}
-          </div>
+          </GlassPanel>
 
           {/* API Inventory Table */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2">
-              📖 API Route Catalog Inventory
-            </h2>
+          <GlassPanel borderColor="cyan" className="p-5 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              API.ROUTES // ENDPOINT CATALOG
+            </div>
             <div className="max-h-[300px] overflow-y-auto border border-gray-900 rounded">
               <table className="w-full text-xs font-mono border-collapse">
                 <thead>
@@ -302,17 +315,18 @@ export const PlatformHealth: React.FC = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </GlassPanel>
         </div>
 
         {/* Right Side Sidebar Details Panel (1/3 width) */}
         <div className="space-y-6">
           
           {/* Active Services Checkbox status */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2">
-              Platform Services Status
-            </h2>
+          <GlassPanel borderColor="cyan" className="p-5 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              PLATFORM.SERVICES // OPERATIONAL CHECK
+            </div>
             <div className="space-y-2.5 font-mono text-xs">
               {health?.services ? (
                 Object.entries(health.services).map(([service, status]) => {
@@ -323,7 +337,7 @@ export const PlatformHealth: React.FC = () => {
                       <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
                         isOnline ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-green-500 animate-pulse" : "bg-amber-500"}`}></span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-[#00ff66] animate-pulse shadow-[0_0_6px_#00ff66]" : "bg-amber-550"}`}></span>
                         {status}
                       </span>
                     </div>
@@ -333,14 +347,14 @@ export const PlatformHealth: React.FC = () => {
                 <div className="text-gray-500">Services offline.</div>
               )}
             </div>
-          </div>
+          </GlassPanel>
 
           {/* SQLite DB Retries Observability */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500 border-b border-amber-500/15 pb-2 flex items-center gap-1.5">
-              <Database className="w-4 h-4 text-amber-500" />
-              SQLite Concurrency Lock Retries
-            </h2>
+          <GlassPanel borderColor="amber" className="p-5 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 border-b border-amber-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+              DATABASE.LOCK // SQLITE CONCURRENCY
+            </div>
             <div className="grid grid-cols-2 gap-3 text-center font-mono">
               <div className="bg-[#050b14] border border-gray-800 rounded p-3">
                 <span className="text-[9px] text-gray-500 block uppercase">Commit Retries</span>
@@ -355,14 +369,14 @@ export const PlatformHealth: React.FC = () => {
               <Info className="w-3.5 h-3.5 text-cyan-500 flex-shrink-0" />
               <span>Indicates database lock write contention. Auto-retry uses exponential backoff to handle sqlite lock limits.</span>
             </div>
-          </div>
+          </GlassPanel>
 
           {/* WebSockets Link Status */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-cyan-400" />
-              Active WebSocket Sockets
-            </h2>
+          <GlassPanel borderColor="cyan" className="p-5 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              WEBSOCKET.LINK // TUNNEL SESSIONS
+            </div>
             <div className="divide-y divide-gray-900/60 font-mono text-xs text-gray-300">
               <div className="flex justify-between py-1.5">
                 <span>/ws/telemetry</span>
@@ -377,7 +391,7 @@ export const PlatformHealth: React.FC = () => {
                 <span className="text-cyan-400 font-bold">{health?.websocket_connections?.simulation ?? 0} clients</span>
               </div>
             </div>
-          </div>
+          </GlassPanel>
 
           {/* Onboarding expanders */}
           <div className="space-y-2">

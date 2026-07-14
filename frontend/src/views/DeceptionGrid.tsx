@@ -156,28 +156,35 @@ export const DeceptionGrid: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#220 20% 15%] pb-4">
+      <div className="flex justify-between items-center pb-4 page-header-glass">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Deception Grid</h1>
-          <p className="text-sm text-gray-400">Manage decoy systems, trap targets, and inspect engagements</p>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-amber-500 uppercase tracking-widest mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#ffb300] animate-pulse shadow-[0_0_8px_#ffb300]"></span>
+            CONSOLE.STATUS // DECEPTION_MESH_ACTIVE
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-white font-mono uppercase">Deception Grid Mesh</h1>
+          <p className="text-xs text-gray-400">Manage decoy systems, trap targets, and inspect active honeypot engagements</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Honeycomb Grid Layout (2/3 width) */}
-        <div className="xl:col-span-2 faceted-panel p-5 h-[570px] flex flex-col relative overflow-hidden bg-[#0d0f14]">
-          <div className="absolute inset-0 opacity-30 hex-grid-overlay" />
+        <GlassPanel borderColor="amber" className="xl:col-span-2 p-5 h-[570px] flex flex-col relative overflow-hidden">
+          <div className="absolute inset-0 opacity-20 hex-grid-overlay pointer-events-none" />
           <div className="flex justify-between items-center mb-6 z-10">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500">Hive Decoy Topology</h2>
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 uppercase">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+              DEC.TOPOLOGY // HONEYPOT MESH
+            </div>
             <div className="flex gap-2">
               {(["All", "SSH", "HTTP", "Database"] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
-                  className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded border transition-all ${
+                  className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded border transition-all font-mono ${
                     filterType === type
-                      ? "bg-amber-500 text-black border-amber-500"
-                      : "bg-[#111827] text-gray-400 border-gray-800 hover:border-gray-700"
+                      ? "bg-amber-500 text-black border-amber-500 shadow-[0_0_12px_rgba(245,166,35,0.3)]"
+                      : "bg-[#111827]/70 text-gray-400 border-gray-800 hover:border-gray-700"
                   }`}
                 >
                   {type}
@@ -186,40 +193,61 @@ export const DeceptionGrid: React.FC = () => {
             </div>
           </div>
 
-          {/* Tessellated Hex Layout using grid rows/columns offsets */}
-          <div className="flex-1 flex items-center justify-center relative perspective-container z-10">
-            <div className="grid grid-cols-5 gap-x-1 gap-y-0 max-w-4xl">
-              {filteredDecoys.map((decoy, idx) => {
-                // Apply a vertical offset for the middle column to simulate hex nesting
-                const offsetClass = idx % 2 === 1 ? "translate-y-12" : "";
-                const isEngaging = decoy.status === "engaging";
+          {/* Tessellated Honeycomb Hex Layout using alternating row sizes and justify-center */}
+          <div className="flex-1 flex flex-col items-center justify-center relative z-10 py-6">
+            {(() => {
+              const rows = [];
+              const temp = [...filteredDecoys];
+              let rowIdx = 0;
+              while (temp.length > 0) {
+                const rowSize = rowIdx % 2 === 0 ? 4 : 3;
+                rows.push(temp.splice(0, rowSize));
+                rowIdx++;
+              }
 
-                return (
-                  <div key={decoy.id} className={`transition-all ${offsetClass} tile-3d-elevation`}>
-                    <Hexagon
-                      size={128}
-                      glowColor={isEngaging ? "amber" : "none"}
-                      pulse={isEngaging}
-                      onClick={() => setSelectedDecoyId(decoy.id)}
-                    >
-                      <Bug className={`w-4 h-4 mb-1 ${isEngaging ? "text-amber-500" : "text-gray-500"}`} />
-                      <span className="text-[9px] font-bold font-mono tracking-wider truncate w-24">{decoy.name}</span>
-                      <span className="text-[8px] text-gray-500 mt-1 uppercase">{decoy.type}</span>
-                    </Hexagon>
-                  </div>
-                );
-              })}
-            </div>
+              return rows.map((row, rIdx) => (
+                <div 
+                  key={rIdx} 
+                  className="flex justify-center -mt-7 first:mt-0"
+                >
+                  {row.map((decoy) => {
+                    const isSelected = decoy.id === selectedDecoyId;
+                    const isEngaging = decoy.status === "engaging";
+                    return (
+                      <div 
+                        key={decoy.id} 
+                        className="mx-1 tile-3d-elevation cursor-pointer"
+                        onClick={() => setSelectedDecoyId(decoy.id)}
+                      >
+                        <Hexagon
+                          size={110}
+                          glowColor={isEngaging ? "amber" : (isSelected ? "cyan" : "none")}
+                          pulse={isEngaging}
+                        >
+                          <Bug className={`w-4 h-4 mb-1 ${isEngaging ? "text-amber-500 animate-pulse" : (isSelected ? "text-cyan-400" : "text-gray-500")}`} />
+                          <span className="text-[9px] font-bold font-mono tracking-wider truncate w-20 text-white">{decoy.name}</span>
+                          <span className="text-[7.5px] text-gray-500 mt-0.5 uppercase font-mono">{decoy.type}</span>
+                        </Hexagon>
+                      </div>
+                    );
+                  })}
+                </div>
+              ));
+            })()}
           </div>
-        </div>
+        </GlassPanel>
 
         {/* Live Attack Engagement Inspector (1/3 width) */}
-        <GlassPanel borderColor="cyan" className="p-5 h-[570px] flex flex-col">
+        <GlassPanel borderColor="amber" className="p-5 h-[570px] flex flex-col">
           {selectedDecoy ? (
             <div className="space-y-4 flex-grow flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start border-b border-gray-800 pb-3">
                   <div>
+                    <div className="flex items-center gap-1.5 text-[9px] font-mono font-bold tracking-wider text-amber-500 uppercase mb-1">
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+                      DEC.INSPECT // DETAIL ACTIVE
+                    </div>
                     <h3 className="text-sm font-bold text-white font-mono">{selectedDecoy.name}</h3>
                     <span className="text-[10px] text-gray-400 font-mono">IP: {selectedDecoy.ip}</span>
                   </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
-import { Clipboard, Shield, MessageSquare, Plus, Trash2, ArrowLeft, Sparkles, Send } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Send } from "lucide-react";
 import { GlassPanel } from "../components/GlassPanel";
 
 interface Case {
@@ -138,25 +138,32 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#220 20% 15%] pb-4">
+      <div className="flex justify-between items-center pb-4 page-header-glass">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Investigations workspace</h1>
-          <p className="text-sm text-gray-400">Triage anomalous security cases and run incident playbook reviews</p>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-amber-500 uppercase tracking-widest mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#ffb300] animate-pulse shadow-[0_0_8px_#ffb300]"></span>
+            CONSOLE.STATUS // INVESTIGATIONS_ACTIVE
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-white font-mono uppercase">Investigations workspace</h1>
+          <p className="text-xs text-gray-400">Triage anomalous security cases and run incident playbook reviews</p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-950/30 border border-red-500/50 rounded-md text-red-400 text-xs">
-          {error}
+        <div className="p-3 bg-red-950/30 border border-red-500/50 rounded-md text-red-400 text-xs font-mono">
+          [ALERT] {error}
         </div>
       )}
 
       {!selectedCaseId && (
         <GlassPanel borderColor="cyan" className="p-5 min-h-[220px] grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-5 overflow-hidden">
           <div className="border-r border-gray-800 pr-5">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Incident Chronology</span>
+            <div className="flex items-center gap-2 text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              CASE.CHRONO // TIMELINE
+            </div>
             <div className="mt-3 text-3xl font-black font-mono text-white">{cases.length || 3}</div>
-            <div className="text-[10px] uppercase tracking-widest text-gray-500">Active ledgers</div>
+            <div className="text-[10px] uppercase tracking-widest text-gray-500 font-mono">Active ledgers</div>
             <div className="mt-5 rounded border border-amber-500/20 bg-amber-950/10 p-3 text-xs text-gray-300 font-sans">
               Timeline-first triage highlights escalation order before analyst assignment.
             </div>
@@ -189,7 +196,10 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left / Center list of cases */}
           <GlassPanel borderColor="amber" className="lg:col-span-2 p-5 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500">Case Incident Ledger</h2>
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 uppercase">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+              CASE.LEDGER // ACTIVE INVESTIGATIONS
+            </div>
             
             <div className="space-y-2">
               {cases.length === 0 ? (
@@ -229,7 +239,10 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
 
           {/* Right column: Create a new case */}
           <GlassPanel borderColor="cyan" className="p-5 space-y-4 h-fit">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400">Escalate Case</h2>
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              CASE.ESCALATE // DISPATCH PANEL
+            </div>
             <form onSubmit={handleCreateCase} className="space-y-3">
               <div className="space-y-1">
                 <label className="text-xs text-gray-400">Investigation Case Title:</label>
@@ -274,9 +287,10 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Evidence Log list */}
               <GlassPanel borderColor="amber" className="p-5 space-y-3 flex flex-col h-[350px]">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 flex items-center gap-1.5">
-                  <Clipboard className="w-3.5 h-3.5" /> Evidence Ledger
-                </h3>
+                <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 uppercase">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+                  CASE.EVIDENCE // FORENSIC BUNDLE
+                </div>
                 <div className="flex-1 overflow-y-auto space-y-2 font-mono text-xs pr-1 scrollbar-thin">
                   {!caseDetails?.evidence || caseDetails.evidence.length === 0 ? (
                     <div className="text-gray-500 text-center py-10 font-sans">No evidence logs registered to case database.</div>
@@ -285,7 +299,7 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
                       <div key={idx} className="p-2.5 bg-[#050b14]/90 border border-gray-800 rounded">
                         <div className="text-[10px] text-gray-400 mb-1">{ev.timestamp || "2026-07-13 12:00:00"}</div>
                         <div className="text-white font-semibold">{ev.event}</div>
-                        <div className="flex justify-between items-center mt-1 text-[10px] text-gray-400">
+                        <div className="flex justify-between items-center mt-1 text-[10px] text-gray-400 font-sans">
                           <span>MITRE: {ev.mitre || "N/A"}</span>
                           <span className="text-red-400 uppercase font-bold">{ev.severity}</span>
                         </div>
@@ -297,9 +311,10 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
 
               {/* Chronological Timeline track */}
               <GlassPanel borderColor="cyan" className="p-5 space-y-3 flex flex-col h-[350px]">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" /> Incident timeline track
-                </h3>
+                <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+                  <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+                  CASE.TRACK // EVENT LOGS
+                </div>
                 <div className="flex-1 overflow-y-auto space-y-3 relative pl-4 border-l border-gray-800 pr-1 scrollbar-thin">
                   {!caseDetails?.timeline || caseDetails.timeline.length === 0 ? (
                     <div className="text-gray-500 text-center py-10 font-sans">No chronological timeline logs registered.</div>
@@ -320,15 +335,16 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
 
             {/* Analyst notes thread */}
             <GlassPanel borderColor="amber" className="p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5" /> Analyst notes thread
-              </h3>
+              <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 uppercase">
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+                CASE.NOTES // CONSOLE CHAT
+              </div>
               <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
                 {!caseDetails?.notes_list || caseDetails.notes_list.length === 0 ? (
                   <div className="text-gray-500 text-xs py-2 font-sans">No analyst notes recorded yet.</div>
                 ) : (
                   caseDetails.notes_list.map((note: any, idx: number) => (
-                    <div key={idx} className="p-3 bg-[#111827]/50 border border-gray-800 rounded-lg">
+                    <div key={idx} className="p-3 bg-[#111827]/50 border border-gray-800 rounded-lg font-mono">
                       <div className="flex justify-between items-center text-[10px] text-gray-400 mb-1">
                         <span className="font-bold text-amber-500">{note.author}</span>
                         <span>{note.created_at || "Just now"}</span>
@@ -359,9 +375,10 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
           {/* Right column: AI Copilot Strategy Panel (1/4 width) */}
           <GlassPanel borderColor="cyan" className="p-5 flex flex-col justify-between h-fit space-y-4">
             <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" /> AI Incident Copilot
-              </h3>
+              <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+                AI.COPILOT // SUGGESTION ACTIVE
+              </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] text-gray-400">Analysis Perspective:</label>

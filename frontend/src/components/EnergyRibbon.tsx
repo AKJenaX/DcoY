@@ -115,13 +115,22 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
     return `M ${x},${y - ry} L ${x + dx},${y - dy} L ${x + dx},${y + dy} L ${x},${y + ry} L ${x - dx},${y + dy} L ${x - dx},${y - dy} Z`;
   };
 
+  const isMap = mode === "map";
+  const stdDev1 = isMap ? 14 : 8;
+  const stdDev2 = isMap ? 30 : 22;
+  const ribbonOpacity = isMap ? 0.75 : 0.3;
+  const ribbonStrokeWidth = isMap ? 22 : 16;
+  const ribbonCoreStrokeWidth = isMap ? 5.5 : 4.5;
+  const violetStrokeWidth = isMap ? 24 : 18;
+  const maskStrokeWidth = isMap ? 48 : 36;
+
   const content = (
     <>
       <defs>
         {/* Glow Filters */}
         <filter id="glow-amber-ribbon" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="8" result="blur1" />
-          <feGaussianBlur stdDeviation="22" result="blur2" />
+          <feGaussianBlur stdDeviation={stdDev1} result="blur1" />
+          <feGaussianBlur stdDeviation={stdDev2} result="blur2" />
           <feMerge>
             <feMergeNode in="blur2" />
             <feMergeNode in="blur1" />
@@ -130,8 +139,8 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
         </filter>
 
         <filter id="glow-cyan-ribbon" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="8" result="blur1" />
-          <feGaussianBlur stdDeviation="22" result="blur2" />
+          <feGaussianBlur stdDeviation={stdDev1} result="blur1" />
+          <feGaussianBlur stdDeviation={stdDev2} result="blur2" />
           <feMerge>
             <feMergeNode in="blur2" />
             <feMergeNode in="blur1" />
@@ -140,8 +149,8 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
         </filter>
 
         <filter id="glow-violet-ribbon" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="8" result="blur1" />
-          <feGaussianBlur stdDeviation="22" result="blur2" />
+          <feGaussianBlur stdDeviation={stdDev1} result="blur1" />
+          <feGaussianBlur stdDeviation={stdDev2} result="blur2" />
           <feMerge>
             <feMergeNode in="blur2" />
             <feMergeNode in="blur1" />
@@ -150,14 +159,14 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
         </filter>
 
         <filter id="ribbon-mask-blur">
-          <feGaussianBlur stdDeviation="12" />
+          <feGaussianBlur stdDeviation={isMap ? 16 : 12} />
         </filter>
 
         {/* Intersection mask: Violet glow is ONLY visible where Amber intersects Cyan's envelope */}
         <mask id="cyan-ribbon-mask">
           <rect x="-100" y="-100" width={width + 200} height={height + 200} fill="black" />
           {/* Cyan glow region in mask */}
-          <path d={pathB} fill="none" stroke="white" strokeWidth="36" filter="url(#ribbon-mask-blur)" opacity="0.8" />
+          <path d={pathB} fill="none" stroke="white" strokeWidth={maskStrokeWidth} filter="url(#ribbon-mask-blur)" opacity="0.8" />
           {/* Cyan core region in mask */}
           <path d={pathB} fill="none" stroke="white" strokeWidth="10" />
         </mask>
@@ -166,16 +175,16 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
       {/* Amber Path */}
       {pathA && (
         <g className={animate ? "animate-pulse-slow" : ""}>
-          <path d={pathA} fill="none" stroke="#ffb300" strokeWidth="16" filter="url(#glow-amber-ribbon)" opacity="0.3" />
-          <path d={pathA} fill="none" stroke="#ffd54f" strokeWidth="4.5" />
+          <path d={pathA} fill="none" stroke="#ffb300" strokeWidth={ribbonStrokeWidth} filter="url(#glow-amber-ribbon)" opacity={ribbonOpacity} />
+          <path d={pathA} fill="none" stroke="#ffd54f" strokeWidth={ribbonCoreStrokeWidth} />
         </g>
       )}
 
       {/* Cyan Path */}
       {pathB && (
         <g className={animate ? "animate-pulse-slow" : ""}>
-          <path d={pathB} fill="none" stroke="#00e5ff" strokeWidth="16" filter="url(#glow-cyan-ribbon)" opacity="0.3" />
-          <path d={pathB} fill="none" stroke="#80deea" strokeWidth="4.5" />
+          <path d={pathB} fill="none" stroke="#00e5ff" strokeWidth={ribbonStrokeWidth} filter="url(#glow-cyan-ribbon)" opacity={ribbonOpacity} />
+          <path d={pathB} fill="none" stroke="#80deea" strokeWidth={ribbonCoreStrokeWidth} />
         </g>
       )}
 
@@ -186,16 +195,16 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
             d={pathA}
             fill="none"
             stroke="#d500f9"
-            strokeWidth="18"
+            strokeWidth={violetStrokeWidth}
             filter="url(#glow-violet-ribbon)"
-            opacity="0.65"
+            opacity={isMap ? 0.85 : 0.65}
             mask="url(#cyan-ribbon-mask)"
           />
           <path
             d={pathA}
             fill="none"
             stroke="#f48fb1"
-            strokeWidth="4.5"
+            strokeWidth={ribbonCoreStrokeWidth}
             mask="url(#cyan-ribbon-mask)"
           />
         </g>

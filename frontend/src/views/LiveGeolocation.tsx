@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useRealtimeChannel } from "../hooks/useRealtimeChannel";
-import { Globe, MapPin, Info, Crosshair } from "lucide-react";
+import { MapPin, Info } from "lucide-react";
+import { GlassPanel } from "../components/GlassPanel";
 
 interface LocationData {
   ip: string;
@@ -80,28 +81,29 @@ export const LiveGeolocation: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#202020]/40 pb-3">
+      <div className="flex justify-between items-center pb-3 page-header-glass">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <Globe className="w-6 h-6 text-cyan-400" />
-            Live Threat Geolocation
-          </h1>
-          <p className="text-sm text-gray-400">Real-time geographical resolution of active adversary scan origins</p>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-cyan-400 uppercase tracking-widest mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]"></span>
+            CONSOLE.STATUS // TACTICAL_RESOLVER_ACTIVE
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-white font-mono uppercase">Live Threat Geolocation</h1>
+          <p className="text-xs text-gray-400">Real-time geographical resolution of active adversary scan origins</p>
         </div>
         <div>
           {geoStatus === "connected" && (
-            <span className="flex items-center gap-1.5 text-[10px] bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded text-green-400 font-bold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span> Live Link Armed
+            <span className="flex items-center gap-1.5 text-[10px] bg-green-500/10 border border-green-500/30 px-2 py-0.5 rounded text-green-400 font-bold uppercase tracking-wider font-mono">
+              <span className="w-1.5 h-1.5 bg-[#00ff66] rounded-full animate-pulse shadow-[0_0_6px_#00ff66]"></span> Live Link Armed
             </span>
           )}
           {(geoStatus === "connecting" || geoStatus === "reconnecting") && (
-            <span className="flex items-center gap-1.5 text-[10px] bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded text-amber-400 font-bold uppercase tracking-wider animate-pulse">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span> Georesolver Syncing...
+            <span className="flex items-center gap-1.5 text-[10px] bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded text-amber-400 font-bold uppercase tracking-wider animate-pulse font-mono">
+              <span className="w-1.5 h-1.5 bg-[#ffb300] rounded-full animate-pulse shadow-[0_0_6px_#ffb300]"></span> Georesolver Syncing...
             </span>
           )}
           {geoStatus === "polling" && (
-            <span className="flex items-center gap-1.5 text-[10px] bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded text-cyan-400 font-bold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce"></span> HTTP Resolver Fallback
+            <span className="flex items-center gap-1.5 text-[10px] bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded text-cyan-400 font-bold uppercase tracking-wider font-mono">
+              <span className="w-1.5 h-1.5 bg-[#00e5ff] rounded-full animate-pulse shadow-[0_0_6px_#00e5ff]"></span> HTTP Resolver Fallback
             </span>
           )}
         </div>
@@ -117,7 +119,7 @@ export const LiveGeolocation: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         
         {/* SVG Tactical Map container (3/4 width) */}
-        <div className="xl:col-span-3 faceted-panel p-5 bg-[#050b14]/75 border border-cyan-500/10 rounded-lg relative overflow-hidden flex flex-col items-center">
+        <GlassPanel borderColor="cyan" className="xl:col-span-3 p-5 relative overflow-hidden flex flex-col items-center">
           {/* Tactical Background Grid */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(18,53,60,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(18,53,60,0.07)_1px,transparent_1px)] bg-[size:25px_25px] pointer-events-none"></div>
           
@@ -220,15 +222,16 @@ export const LiveGeolocation: React.FC = () => {
             <span>IP RESOLUTIONS RESOLVED: {geolocations.length}</span>
             <span>MAPPED THREAT CONTEXT: ACTIVE</span>
           </div>
-        </div>
+        </GlassPanel>
 
         {/* Tactical controls & detailed side metrics (1/4 width) */}
         <div className="space-y-4">
           {/* Hex-shaped Map Legend / Controls */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2">
-              Tactical Filters
-            </h2>
+          <GlassPanel borderColor="cyan" className="p-5 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              TACTICAL.FILTERS // LEGEND
+            </div>
             
             <div className="space-y-2">
               <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Source Node Group</span>
@@ -276,20 +279,20 @@ export const LiveGeolocation: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </GlassPanel>
 
           {/* Hex-shaped Map Node Details or General Info */}
-          <div className="faceted-panel p-5 bg-[#0a0f18]/80 min-h-[180px] flex flex-col justify-between">
+          <GlassPanel borderColor="cyan" className="p-5 min-h-[180px] flex flex-col justify-between">
             {selectedLocation ? (
               <div className="space-y-3">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-xs font-black uppercase text-amber-500 font-mono tracking-wider flex items-center gap-1.5">
-                    <Crosshair className="w-3.5 h-3.5" />
-                    Targeting Origin
-                  </h3>
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold tracking-widest text-amber-500 uppercase">
+                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+                    GEO.TARGET // ORIGIN ASSIGN
+                  </div>
                   <button 
                     onClick={() => setSelectedIp(null)}
-                    className="text-[9px] uppercase tracking-wider text-gray-500 hover:text-white"
+                    className="text-[9px] uppercase tracking-wider text-gray-500 hover:text-white font-mono"
                   >
                     Clear
                   </button>
@@ -344,7 +347,7 @@ export const LiveGeolocation: React.FC = () => {
               <Info className="w-3.5 h-3.5 text-cyan-500" />
               <span>Click markers to pivot into raw asset trace.</span>
             </div>
-          </div>
+          </GlassPanel>
         </div>
 
       </div>

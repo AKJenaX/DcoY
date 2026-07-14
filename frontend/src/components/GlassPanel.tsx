@@ -6,6 +6,7 @@ interface GlassPanelProps {
   borderColor?: "amber" | "cyan" | "gray" | "none";
   showBrackets?: boolean;
   onClick?: () => void;
+  style?: React.CSSProperties;
 }
 
 export const GlassPanel: React.FC<GlassPanelProps> = ({
@@ -14,10 +15,11 @@ export const GlassPanel: React.FC<GlassPanelProps> = ({
   borderColor = "amber",
   showBrackets = true,
   onClick,
+  style,
 }) => {
   const borderClasses = {
-    amber: "border-[rgba(245,166,35,0.25)] shadow-[0_0_30px_rgba(245,166,35,0.03)]",
-    cyan: "border-[rgba(0,229,255,0.25)] shadow-[0_0_30px_rgba(0,229,255,0.03)]",
+    amber: "border-[rgba(245,166,35,0.25)] shadow-[0_0_25px_rgba(245,166,35,0.12),0_0_50px_rgba(245,166,35,0.06),inset 0 0 0 1px rgba(245,166,35,0.15)]",
+    cyan: "border-[rgba(0,229,255,0.25)] shadow-[0_0_25px_rgba(0,229,255,0.12),0_0_50px_rgba(0,229,255,0.06),inset 0 0 0 1px rgba(0,229,255,0.15)]",
     gray: "border-[rgba(255,255,255,0.08)] shadow-none",
     none: "border-transparent shadow-none",
   };
@@ -29,10 +31,18 @@ export const GlassPanel: React.FC<GlassPanelProps> = ({
     none: "border-transparent",
   };
 
+  const combinedStyle = {
+    backdropFilter: "blur(24px)",
+    WebkitBackdropFilter: "blur(24px)",
+    background: "linear-gradient(135deg, rgba(245, 166, 35, 0.04) 0%, rgba(0, 0, 0, 0) 50%, rgba(0, 229, 255, 0.04) 100%), rgba(6, 9, 15, 0.65)",
+    ...style,
+  };
+
   return (
     <div
       onClick={onClick}
-      className={`relative bg-[rgba(8,8,12,0.45)] rounded-2xl border backdrop-blur-md saturate-[180%] ${borderClasses[borderColor]} ${className}`}
+      style={combinedStyle}
+      className={`relative rounded-2xl border saturate-[180%] ${borderClasses[borderColor]} ${className}`}
     >
       {/* Corner Bracket - Top Left */}
       {showBrackets && (

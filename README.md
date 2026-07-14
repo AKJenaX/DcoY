@@ -1,10 +1,6 @@
 # DcoY
 
 <p align="center">
-  <img src="assets/logo/logo.png" alt="DcoY Logo" width="128"/>
-</p>
-
-<p align="center">
   <strong>Enterprise AI Security Operations, Threat Detection, and Active Deception</strong>
 </p>
 
@@ -181,11 +177,11 @@ DcoY/
 
 ### Frontend Dashboard
 
-- React
-- TypeScript
-- Vite
-- Lucide React
-- CSS Variables (Hive Defense Theme)
+- **React & TypeScript** with a fast Vite build toolchain.
+- **Cybernetic Hive Defense Theme**: Deep dark styling utilizing custom CSS variables, GlassPanel overlay primitives, and HexField layouts.
+- **Organic Winding Curves**: Uses dynamic EnergyRibbon components to visually represent system pathways and live connection topologies.
+- **Faceted Side Navigation**: High-contrast honeycomb-inspired navigation with integrated status indicators.
+- **Interactive Data Visualizations**: Custom SVG charting, responsive live threat maps, and dynamic MITRE ATT&CK coverage grids.
 
 ### Design System
 

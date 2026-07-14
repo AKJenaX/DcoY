@@ -15,7 +15,6 @@ import { PlatformHealth } from "./views/PlatformHealth";
 import { ExecutiveDashboard } from "./views/ExecutiveDashboard";
 import { NavHexagon } from "./components/NavHexagon";
 import { GlassPanel } from "./components/GlassPanel";
-import { HexField } from "./components/HexField";
 
 import {
   Shield,
@@ -365,11 +364,17 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0b0d] flex text-gray-300">
+    <div className="min-h-screen bg-[#030305] flex text-gray-300 relative overflow-hidden">
+      {/* Hoisted Global Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none select-none bg-[#030305]">
+        <Login3DBackground />
+      </div>
+
       {/* Sidebar Navigation */}
-      <aside className="h-screen sticky top-0 w-64 bg-[rgba(8,8,12,0.65)] border-r border-white/[0.08] backdrop-blur-md flex flex-col justify-between p-5 z-20 sidebar-honeycomb-bg overflow-hidden">
-        {/* Lightweight Background HexField Strip */}
-        <HexField density="sidebar" animate={false} opacity={0.15} />
+      <aside 
+        className="h-screen sticky top-0 w-64 border-r border-white/[0.03] flex flex-col justify-between p-5 z-20 overflow-hidden"
+        style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", background: "linear-gradient(to right, rgba(5, 8, 14, 0.55) 0%, rgba(5, 8, 14, 0.40) 100%)" }}
+      >
 
         <div className="flex-1 overflow-y-auto space-y-6 pr-1 custom-scrollbar z-10 relative">
           {/* Logo */}
@@ -395,7 +400,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "overview"
                     ? "text-cyan-400 bg-cyan-950/15 border border-cyan-500/20 shadow-[0_0_15px_rgba(0,229,255,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -413,7 +418,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "hivemap"
                     ? "text-cyan-400 bg-cyan-950/15 border border-cyan-500/20 shadow-[0_0_15px_rgba(0,229,255,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -431,7 +436,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "deception"
                     ? "text-cyan-400 bg-cyan-950/15 border border-cyan-500/20 shadow-[0_0_15px_rgba(0,229,255,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -449,7 +454,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "intel"
                     ? "text-cyan-400 bg-cyan-950/15 border border-cyan-500/20 shadow-[0_0_15px_rgba(0,229,255,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -467,7 +472,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "geolocation"
                     ? "text-cyan-400 bg-cyan-950/15 border border-cyan-500/20 shadow-[0_0_15px_rgba(0,229,255,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -485,7 +490,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "simulation"
                     ? "text-cyan-400 bg-cyan-950/15 border border-cyan-500/20 shadow-[0_0_15px_rgba(0,229,255,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -503,7 +508,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "health"
                     ? "text-cyan-400 bg-cyan-950/15 border border-cyan-500/20 shadow-[0_0_15px_rgba(0,229,255,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -528,7 +533,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "investigations"
                     ? "text-amber-400 bg-amber-950/15 border border-amber-500/20 shadow-[0_0_15px_rgba(245,166,35,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -546,7 +551,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "rules"
                     ? "text-amber-400 bg-amber-950/15 border border-amber-500/20 shadow-[0_0_15px_rgba(245,166,35,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -571,7 +576,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "executive"
                     ? "text-amber-400 bg-amber-950/15 border border-amber-500/20 shadow-[0_0_15px_rgba(245,166,35,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -589,7 +594,7 @@ export const App: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-all group ${
                   activePage === "report"
                     ? "text-amber-400 bg-amber-950/15 border border-amber-500/20 shadow-[0_0_15px_rgba(245,166,35,0.06)]"
-                    : "text-gray-400 border border-transparent hover:text-white hover:bg-gray-850/30"
+                    : "text-gray-300 border border-transparent hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <div className={`p-1.5 rounded-md border transition-all duration-300 ${
@@ -634,9 +639,9 @@ export const App: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Sticky Top Header Navigation */}
-        <header className="sticky top-0 bg-[#0a0b0d]/85 backdrop-filter backdrop-blur-md border-b border-[#202020]/40 px-8 py-3 flex justify-between items-center z-10">
+        <header className="sticky top-0 border-b border-white/[0.08] px-8 py-3 flex justify-between items-center z-10" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", background: "rgba(5, 8, 14, 0.45)" }}>
           <div className="flex items-center gap-6 flex-1 max-w-2xl">
             <span className="text-xs font-mono font-bold tracking-wider text-gray-400 whitespace-nowrap">
               SECURE DOMAIN OPERATOR WORKSPACE
@@ -708,34 +713,36 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-semibold">
+          <div className="flex items-center gap-4 text-xs font-semibold font-mono">
             <span className="text-gray-500 font-mono">UTC TIME: {utcTime || "00:00:00"}</span>
             {telemetryStatus === "connected" && (
-              <span className="flex items-center gap-1 text-green-400 bg-green-950/20 border border-green-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span> SYSTEM OK
+              <span className="flex items-center gap-1.5 text-green-400 bg-green-950/20 border border-green-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]"></span> SYSTEM OK
               </span>
             )}
             {(telemetryStatus === "connecting" || telemetryStatus === "reconnecting") && (
-              <span className="flex items-center gap-1 text-amber-400 bg-amber-950/20 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold animate-pulse">
-                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span> SYNCING...
+              <span className="flex items-center gap-1.5 text-amber-400 bg-amber-950/20 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-[#ffb300] animate-pulse shadow-[0_0_8px_#ffb300]"></span> SYNCING
               </span>
             )}
             {telemetryStatus === "polling" && (
-              <span className="flex items-center gap-1 text-cyan-400 bg-cyan-950/20 border border-cyan-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold">
-                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce"></span> HTTP FALLBACK
+              <span className="flex items-center gap-1.5 text-cyan-400 bg-cyan-950/20 border border-cyan-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#00e5ff] animate-pulse shadow-[0_0_8px_#00e5ff]"></span> HTTP FALLBACK
               </span>
             )}
             {telemetryStatus === "disconnected" && (
-              <span className="flex items-center gap-1 text-red-400 bg-red-950/20 border border-red-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold">
-                <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> OFFLINE
+              <span className="flex items-center gap-1.5 text-red-400 bg-red-950/20 border border-red-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#ff3333] animate-pulse shadow-[0_0_8px_#ff3333]"></span> OFFLINE
               </span>
             )}
           </div>
         </header>
 
         {/* Viewport container */}
-        <main className="flex-1 p-8 overflow-y-auto">
-          {renderContent()}
+        <main className="flex-1 p-8 overflow-y-auto relative bg-transparent z-10">
+          <div className="relative z-10">
+            {renderContent()}
+          </div>
         </main>
       </div>
     </div>

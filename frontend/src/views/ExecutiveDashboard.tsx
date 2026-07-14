@@ -3,7 +3,8 @@ import { api } from "../services/api";
 import { SvgBarChart } from "../components/charts/SvgBarChart";
 import { SvgLineChart } from "../components/charts/SvgLineChart";
 import { SvgDonutChart } from "../components/charts/SvgDonutChart";
-import { Award, TrendingUp, Compass, Activity, Download, Info } from "lucide-react";
+import { Download, Activity } from "lucide-react";
+import { GlassPanel } from "../components/GlassPanel";
 
 interface MitreTechnique {
   tactic: string;
@@ -148,24 +149,25 @@ export const ExecutiveDashboard: React.FC = () => {
   const selectedMitre = metrics?.mitre_coverage?.[selectedMitreIdx] || null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 py-4 px-2 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#202020]/40 pb-3">
+      <div className="flex justify-between items-center pb-3 page-header-glass">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <Award className="w-6 h-6 text-amber-500" />
-            Executive Intelligence Command
-          </h1>
-          <p className="text-sm text-gray-400">Operational posture, response efficiency KPIs, and defensive coverage maps</p>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-amber-500 uppercase tracking-widest mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#ffb300] animate-pulse shadow-[0_0_8px_#ffb300]"></span>
+            CONSOLE.STATUS // EXECUTIVE_OVERWATCH_READY
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-white font-mono uppercase">Executive Intelligence Command</h1>
+          <p className="text-xs text-gray-400">Operational posture, response efficiency KPIs, and defensive coverage maps</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={downloadPdf}
             disabled={downloading}
-            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-800 text-black font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(245,158,11,0.15)]"
+            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-800 text-black font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(245,158,11,0.15)] font-mono"
           >
             <Download className="w-3.5 h-3.5" />
-            {downloading ? "Exporting PDF..." : "Export Report PDF"}
+            {downloading ? "Exporting PDF..." : "EXPORT REPORT PDF"}
           </button>
         </div>
       </div>
@@ -177,32 +179,36 @@ export const ExecutiveDashboard: React.FC = () => {
       )}
 
       {/* KPI Row (Six columns) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
         {[
-          ["Open Cases", kpis.open_investigations, "Active incidents", "border-amber-500/20 text-amber-500"],
-          ["Critical Alerts (24h)", kpis.critical_alerts_24h, "Incoming threats", "border-red-500/20 text-red-500"],
-          ["Detection Coverage", `${kpis.detection_coverage}%`, "MITRE Techniques", "border-green-500/20 text-green-400"],
-          ["MTTI (Investigate)", `${kpis.mtti_hours}h`, "Avg triage latency", "border-cyan-500/20 text-cyan-400"],
-          ["MTTR (Resolution)", `${kpis.mttr_hours}h`, "Mean mitigation time", "border-cyan-500/20 text-cyan-400"],
-          ["AI Confidence Avg", `${kpis.ai_confidence_average}%`, "Evidence verification", "border-cyan-500/20 text-cyan-400"]
-        ].map(([label, val, sub, borderClass]) => (
-          <div key={label} className={`faceted-panel p-4 bg-[#0a0f18]/80 border text-center font-mono ${borderClass}`}>
-            <span className="text-[9px] uppercase tracking-wider text-gray-500 block mb-1">{label}</span>
-            <span className="text-2xl font-black block">{val}</span>
-            <span className="text-[8px] text-gray-500 mt-1 block uppercase">{sub}</span>
-          </div>
+          ["Open Cases", kpis.open_investigations, "Active incidents"],
+          ["Critical Alerts (24h)", kpis.critical_alerts_24h, "Incoming threats"],
+          ["Detection Coverage", `${kpis.detection_coverage}%`, "MITRE Techniques"],
+          ["MTTI (Investigate)", `${kpis.mtti_hours}h`, "Avg triage latency"],
+          ["MTTR (Resolution)", `${kpis.mttr_hours}h`, "Mean mitigation time"],
+          ["AI Confidence Avg", `${kpis.ai_confidence_average}%`, "Evidence verification"]
+        ].map(([label, val, sub]) => (
+          <GlassPanel key={label} borderColor="amber" className="p-6 text-center font-mono hover:border-amber-400/40 transition-all hover:scale-[1.02] shadow-[0_0_15px_rgba(245,158,11,0.03)] bg-[#0a0f18]/60">
+            <span className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">{label}</span>
+            <span className="text-4xl font-black block text-amber-400 tracking-tight">{val}</span>
+            <span className="text-[8.5px] text-gray-500 mt-2 block uppercase font-sans leading-relaxed">{sub}</span>
+          </GlassPanel>
         ))}
       </div>
 
       {/* Posture & Executive Trend Summary */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         
+      {/* Posture & Executive Trend Summary */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        
         {/* SVG Circular Posture Gauge Card */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 flex flex-col items-center justify-between text-center relative overflow-hidden">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400/80 mb-2 w-full text-left">
-            Security Posture
-          </h2>
-          <div className="relative w-36 h-36 flex items-center justify-center">
+        <GlassPanel borderColor="cyan" className="p-5 flex flex-col items-center justify-between text-center relative overflow-hidden">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase w-full text-left">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            POSTURE.OVERALL // RISK SUMMARY
+          </div>
+          <div className="relative w-36 h-36 flex items-center justify-center mt-3">
             {/* Draw a dynamic circular SVG gauge */}
             <svg width="120" height="120" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="40" fill="none" className="stroke-gray-900" strokeWidth="6" />
@@ -236,14 +242,17 @@ export const ExecutiveDashboard: React.FC = () => {
               <span className="text-white">{posture.rule_health_average}%</span>
             </div>
           </div>
-        </div>
+        </GlassPanel>
 
         {/* Weekly Trend Line Chart */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 xl:col-span-2 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 flex justify-between items-center">
-            <span>Weekly Threats Trend</span>
+        <GlassPanel borderColor="cyan" className="xl:col-span-2 p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-cyan-500/15 pb-2 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+              TREND.LOG // HISTORICAL DATA
+            </div>
             <span className="text-[9px] text-gray-500 font-mono font-normal normal-case">Average over time</span>
-          </h2>
+          </div>
           {metrics?.trends?.weekly_trends ? (
             <div className="h-40 flex items-center justify-center">
               <SvgLineChart 
@@ -256,13 +265,14 @@ export const ExecutiveDashboard: React.FC = () => {
           ) : (
             <div className="text-center py-10 text-gray-500 text-xs font-mono">No weekly data.</div>
           )}
-        </div>
+        </GlassPanel>
 
         {/* Daily Alerts Bar Chart */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2">
-            Daily Incident Rate
-          </h2>
+        <GlassPanel borderColor="cyan" className="p-5 space-y-4">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            LATENCY.METRICS // RESPONSE KPI
+          </div>
           {metrics?.trends?.daily_alerts ? (
             <div className="h-40 flex items-center justify-center">
               <SvgBarChart 
@@ -274,7 +284,7 @@ export const ExecutiveDashboard: React.FC = () => {
           ) : (
             <div className="text-center py-10 text-gray-500 text-xs font-mono">No daily logs.</div>
           )}
-        </div>
+        </GlassPanel>
 
       </div>
 
@@ -282,56 +292,53 @@ export const ExecutiveDashboard: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* Tactics Grid Matrix (2/3 width) */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 xl:col-span-2 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2">
-            MITRE ATT&CK Enterprise Coverage
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto pr-1">
+        <GlassPanel borderColor="cyan" className="xl:col-span-2 p-5 space-y-4">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            MITRE.COVERAGE // TACTICS MAPPING
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
             {metrics?.mitre_coverage?.map((item, idx) => {
               const rulesCount = item.rules?.length || 0;
               const isSelected = selectedMitreIdx === idx;
               
-              let statusBorder = "border-gray-800";
               let statusText = "text-gray-500";
               if (item.status === "Covered") {
-                statusBorder = "border-green-500/20";
                 statusText = "text-green-400";
               } else if (item.status === "Partially Covered") {
-                statusBorder = "border-amber-500/20";
                 statusText = "text-amber-500";
               }
 
               return (
-                <div 
+                <GlassPanel 
                   key={idx}
                   onClick={() => setSelectedMitreIdx(idx)}
-                  className={`faceted-panel p-3 bg-[#050b14]/50 border transition-all cursor-pointer hover:border-cyan-500/35 flex flex-col justify-between h-28 ${
-                    isSelected ? "border-cyan-500/80 shadow-[0_0_10px_rgba(6,182,212,0.15)] bg-cyan-950/5" : statusBorder
-                  }`}
+                  borderColor={isSelected ? "cyan" : (item.status === "Covered" ? "cyan" : (item.status === "Partially Covered" ? "amber" : "cyan"))}
+                  className={`p-3 cursor-pointer hover:scale-[1.02] flex flex-col justify-between h-28 transition-all bg-[#050b14]/50`}
                 >
                   <div>
-                    <span className="text-[7.5px] uppercase font-bold text-gray-500 block truncate">{item.tactic}</span>
-                    <span className="text-[11px] font-black text-white mt-1 block leading-tight">{item.technique}</span>
+                    <span className="text-[7.5px] uppercase font-bold text-gray-500 block truncate font-mono">{item.tactic}</span>
+                    <span className="text-[11px] font-black text-white mt-1 block leading-tight font-sans">{item.technique}</span>
                   </div>
-                  <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-900">
+                  <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-900 font-mono">
                     <span className={`text-[8.5px] uppercase font-bold ${statusText}`}>{item.status}</span>
-                    <span className="text-[9px] font-mono text-gray-500">{rulesCount} rules</span>
+                    <span className="text-[9px] text-gray-500">{rulesCount} rules</span>
                   </div>
-                </div>
+                </GlassPanel>
               );
             }) || (
               <div className="col-span-4 text-center py-10 text-gray-500 text-xs font-mono">No MITRE logs maps.</div>
             )}
           </div>
-        </div>
+        </GlassPanel>
 
         {/* Selected Technique Drilldown (1/3 width) */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-4 flex flex-col justify-between">
+        <GlassPanel borderColor="amber" className="p-5 space-y-4 flex flex-col justify-between">
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500 border-b border-amber-500/15 pb-2 flex items-center gap-1.5">
-              <Compass className="w-4 h-4" />
-              Coverage Drilldown
-            </h2>
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 border-b border-amber-500/15 pb-2 uppercase">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+              DRILLDOWN.TACTIC // CONTROLS LIST
+            </div>
             {selectedMitre ? (
               <div className="space-y-4 pt-1 font-mono text-xs">
                 <div>
@@ -372,11 +379,7 @@ export const ExecutiveDashboard: React.FC = () => {
               <div className="text-center py-10 text-gray-500 text-xs">Select a technique to inspect detection coverage.</div>
             )}
           </div>
-          
-          <div className="border-t border-cyan-500/10 pt-3 flex items-center gap-1.5 text-[9px] text-gray-500 font-mono">
-            <Info className="w-3.5 h-3.5 text-cyan-500 flex-shrink-0" />
-            <span>Select techniques to view their detection rules.</span>
-          </div>
+        </GlassPanel>
         </div>
 
       </div>
@@ -385,10 +388,11 @@ export const ExecutiveDashboard: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         
         {/* Severity Distribution Donut */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 text-center flex flex-col justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 text-left w-full">
-            Threat Severity
-          </h2>
+        <GlassPanel borderColor="cyan" className="p-5 text-center flex flex-col justify-between">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase text-left w-full">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            STATUS.KPI // THREAT SEVERITY
+          </div>
           <div className="h-32 flex items-center justify-center">
             {metrics?.trends?.severity_distribution ? (
               <SvgDonutChart 
@@ -401,13 +405,14 @@ export const ExecutiveDashboard: React.FC = () => {
             )}
           </div>
           <span className="text-[8.5px] uppercase font-mono text-gray-500">Breakdown of ingested alerts</span>
-        </div>
+        </GlassPanel>
 
         {/* Top Target Vectors */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 text-center flex flex-col justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 text-left w-full">
-            Top Attack Vectors
-          </h2>
+        <GlassPanel borderColor="cyan" className="p-5 text-center flex flex-col justify-between">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase text-left w-full">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            STATUS.KPI // ATTACK METHODS
+          </div>
           <div className="h-32 flex items-center justify-center">
             {metrics?.trends?.top_attack_vectors ? (
               <SvgDonutChart 
@@ -420,13 +425,14 @@ export const ExecutiveDashboard: React.FC = () => {
             )}
           </div>
           <span className="text-[8.5px] uppercase font-mono text-gray-500">Top attack methods detected</span>
-        </div>
+        </GlassPanel>
 
         {/* Affected Assets & Countries */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 text-center flex flex-col justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 text-left w-full">
-            Top Mapped Targets
-          </h2>
+        <GlassPanel borderColor="cyan" className="p-5 text-center flex flex-col justify-between">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase text-left w-full">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            STATUS.KPI // TOP TARGETS
+          </div>
           <div className="h-32 flex items-center justify-center">
             {metrics?.trends?.top_affected_assets ? (
               <SvgDonutChart 
@@ -439,13 +445,14 @@ export const ExecutiveDashboard: React.FC = () => {
             )}
           </div>
           <span className="text-[8.5px] uppercase font-mono text-gray-500">Most targeted hosts</span>
-        </div>
+        </GlassPanel>
 
         {/* SOC Performance metrics list */}
-        <div className="faceted-panel p-5 bg-[#0a0f18]/80 space-y-3 font-mono text-xs">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2">
-            SOC Response Metrics
-          </h2>
+        <GlassPanel borderColor="cyan" className="p-5 space-y-3 font-mono text-xs">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 border-b border-cyan-500/15 pb-2 uppercase">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            SOC.PERFORMANCE // RESPONSE METRICS
+          </div>
           <div className="space-y-2">
             {[
               ["Analyst Workload", `${posture.analyst_workload} cases`, "Avg queue per analyst"],
@@ -462,17 +469,17 @@ export const ExecutiveDashboard: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
+        </GlassPanel>
 
       </div>
 
       {/* AI Posture Summaries */}
       {metrics?.ai_insights && (
-        <div className="faceted-panel p-5 bg-cyan-950/5 border border-cyan-500/15 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5 border-b border-cyan-500/15 pb-2">
-            <TrendingUp className="w-4 h-4" />
-            AI Gen-Copilot Posture Summary
-          </h2>
+        <GlassPanel borderColor="cyan" className="p-5 space-y-4">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 border-b border-amber-500/15 pb-2 uppercase">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
+            AI.STRATEGY // EXECUTIVE SUGGESTION
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs leading-relaxed">
             <div className="space-y-2 md:col-span-2">
               <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Strategic Executive Analysis</span>
@@ -498,7 +505,7 @@ export const ExecutiveDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </GlassPanel>
       )}
 
     </div>

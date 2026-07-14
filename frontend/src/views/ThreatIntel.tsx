@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
-import { Shield, Rss, Globe } from "lucide-react";
+import { GlassPanel } from "../components/GlassPanel";
 
 interface Indicator {
   id: string;
@@ -95,47 +95,54 @@ export const ThreatIntel: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#220 20% 15%] pb-4">
+      <div className="flex justify-between items-center pb-4 page-header-glass">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Threat Intelligence</h1>
-          <p className="text-sm text-gray-400">Track Indicators of Compromise (IOCs) and security feed logs</p>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-cyan-400 uppercase tracking-widest mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#00e5ff] animate-pulse shadow-[0_0_8px_#00e5ff]"></span>
+            CONSOLE.STATUS // THREAT_INTELLIGENCE_ONLINE
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-white font-mono uppercase">Threat Intelligence</h1>
+          <p className="text-xs text-gray-400 font-mono">Track Indicators of Compromise (IOCs) and security feed logs</p>
         </div>
       </div>
 
       {/* KPI Strip */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="faceted-panel p-4 bg-[#111827]/40 flex justify-between items-center">
+        <GlassPanel borderColor="cyan" className="p-4 flex justify-between items-center font-mono">
           <div>
-            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Adversary Confidence</div>
+            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Adversary Confidence</div>
             <div className="text-xl font-black text-white mt-1">{(intelKpis.confidence_score * 100).toFixed(0)}%</div>
           </div>
-          <Shield className="w-8 h-8 text-cyan-400 opacity-80" />
-        </div>
+          <span className="text-[10px] text-cyan-400 font-bold bg-cyan-950/40 px-2 py-1 rounded border border-cyan-500/20 font-mono">[CONF_ARMED]</span>
+        </GlassPanel>
 
-        <div className="faceted-panel p-4 bg-[#111827]/40 flex justify-between items-center">
+        <GlassPanel borderColor="cyan" className="p-4 flex justify-between items-center font-mono">
           <div>
-            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Campaign Coverage</div>
+            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Campaign Coverage</div>
             <div className="text-xl font-black text-white mt-1">{intelKpis.campaign_coverage_pct}%</div>
           </div>
-          <Rss className="w-8 h-8 text-amber-500 opacity-80" />
-        </div>
+          <span className="text-[10px] text-amber-500 font-bold bg-amber-950/40 px-2 py-1 rounded border border-amber-500/20 font-mono">[OTX_ACTIVE]</span>
+        </GlassPanel>
 
-        <div className="faceted-panel p-4 bg-[#111827]/40 flex justify-between items-center">
+        <GlassPanel borderColor="cyan" className="p-4 flex justify-between items-center font-mono">
           <div>
-            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Top Attack Vector</div>
+            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Top Attack Vector</div>
             <div className="text-sm font-black text-white mt-2 truncate w-48">{intelKpis.top_adversary_technique}</div>
           </div>
-          <Globe className="w-8 h-8 text-cyan-400 opacity-80" />
-        </div>
+          <span className="text-[10px] text-cyan-400 font-bold bg-cyan-950/40 px-2 py-1 rounded border border-cyan-500/20 font-mono">[MITRE_MAP]</span>
+        </GlassPanel>
       </div>
 
       {/* Indicators List */}
-      <div className="faceted-panel p-5 space-y-4">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500">Compromise Indicators (IOCs)</h2>
+      <GlassPanel borderColor="cyan" className="p-5 space-y-4">
+        <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 uppercase">
+          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+          INTEL.IOC // HOSTILE SIGNATURES
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px] tracking-wider">
+              <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px] tracking-wider font-mono">
                 <th className="py-2.5 px-3">IOC ID</th>
                 <th className="py-2.5 px-3">Indicator Address</th>
                 <th className="py-2.5 px-3">IOC Type</th>
@@ -144,7 +151,7 @@ export const ThreatIntel: React.FC = () => {
                 <th className="py-2.5 px-3">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/40">
+            <tbody className="divide-y divide-gray-800/40 font-mono">
               {indicators.map((ind) => (
                 <tr key={ind.id} className="hover:bg-[#111827]/40 transition-colors">
                   <td className="py-3 px-3">
@@ -174,7 +181,7 @@ export const ThreatIntel: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </GlassPanel>
     </div>
   );
 };

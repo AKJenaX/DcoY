@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { CheckCircle, AlertTriangle } from "lucide-react";
+import { GlassPanel } from "../components/GlassPanel";
 
 interface Rule {
   id: number;
@@ -78,37 +79,44 @@ export const DetectionRules: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#220 20% 15%] pb-4">
+      <div className="flex justify-between items-center pb-4 page-header-glass">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Detection Rules</h1>
-          <p className="text-sm text-gray-400">Manage telemetry triggers, query logics, and MITRE matrix maps</p>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-amber-500 uppercase tracking-widest mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#ffb300] animate-pulse shadow-[0_0_8px_#ffb300]"></span>
+            CONSOLE.STATUS // RULES_ONLINE
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-white font-mono uppercase">Detection Rules</h1>
+          <p className="text-xs text-gray-400">Manage operational triggers, query logic blocks, and active signatures</p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-950/30 border border-red-500/50 rounded-md text-red-400 text-xs">
-          {error}
+        <div className="p-3 bg-red-950/30 border border-red-500/50 rounded-md text-red-400 text-xs font-mono">
+          [ALERT] {error}
         </div>
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Rules Table / Ledger list (2/3 width) */}
-        <div className="xl:col-span-2 faceted-panel p-5 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500">Active Rule database</h2>
+        <GlassPanel borderColor="amber" className="xl:col-span-2 p-5 space-y-4">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-amber-500 uppercase">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,166,35,0.6)]"></span>
+            RULES.ACTIVE // DETECTION POLICY
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px] tracking-wider">
+                <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px] tracking-wider font-mono">
                   <th className="py-2.5 px-3">Rule Name</th>
                   <th className="py-2.5 px-3">Mitre Code</th>
                   <th className="py-2.5 px-3 text-center">Severity</th>
                   <th className="py-2.5 px-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/40">
+              <tbody className="divide-y divide-gray-800/40 font-mono">
                 {rules.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-10 text-center text-gray-500">
+                    <td colSpan={4} className="py-10 text-center text-gray-500 font-sans">
                       No active rules synced from database.
                     </td>
                   </tr>
@@ -116,8 +124,8 @@ export const DetectionRules: React.FC = () => {
                   rules.map((rule) => (
                     <tr key={rule.id} className="hover:bg-[#111827]/40 transition-colors">
                       <td className="py-3 px-3">
-                        <div className="font-bold text-white">{rule.name}</div>
-                        <div className="text-[10px] text-gray-400 truncate max-w-[280px]">{rule.description}</div>
+                        <div className="font-bold text-white font-sans">{rule.name}</div>
+                        <div className="text-[10px] text-gray-400 truncate max-w-[280px] font-sans">{rule.description}</div>
                       </td>
                       <td className="py-3 px-3 font-mono font-semibold text-cyan-400">{rule.mitre_technique}</td>
                       <td className="py-3 px-3 text-center">
@@ -137,7 +145,7 @@ export const DetectionRules: React.FC = () => {
                         <span className="flex items-center gap-1.5 font-semibold text-gray-300">
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              rule.status === "Enabled" ? "bg-green-500 animate-pulse" : "bg-gray-600"
+                              rule.status === "Enabled" ? "bg-[#00ff66] animate-pulse shadow-[0_0_6px_#00ff66]" : "bg-gray-650"
                             }`}
                           ></span>
                           {rule.status}
@@ -149,11 +157,14 @@ export const DetectionRules: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </GlassPanel>
 
         {/* Create and Validate Custom logic panel (1/3 width) */}
-        <div className="faceted-panel p-5 space-y-4 h-fit">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400">Deploy New Rule</h2>
+        <GlassPanel borderColor="cyan" className="p-5 space-y-4 h-fit">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            RULES.DEPLOY // INGESTION LOGIC
+          </div>
           <form onSubmit={handleCreateRule} className="space-y-4">
             <div className="space-y-1">
               <label className="text-[10px] text-gray-400 uppercase">Rule Name:</label>
@@ -256,7 +267,7 @@ export const DetectionRules: React.FC = () => {
               Deploy Custom Rule
             </button>
           </form>
-        </div>
+        </GlassPanel>
       </div>
     </div>
   );
