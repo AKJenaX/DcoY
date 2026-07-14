@@ -13,6 +13,7 @@ import { LiveGeolocation } from "./views/LiveGeolocation";
 import { AttackSimulation } from "./views/AttackSimulation";
 import { PlatformHealth } from "./views/PlatformHealth";
 import { ExecutiveDashboard } from "./views/ExecutiveDashboard";
+import { NavHexagon } from "./components/NavHexagon";
 
 import {
   Shield,
@@ -345,11 +346,13 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] flex text-gray-300">
-      <aside className="h-screen sticky top-0 w-64 bg-[#0a0b0d] border-r border-[#202020]/40 flex flex-col justify-between p-5 z-20">
-        <div className="flex-1 overflow-y-auto space-y-6 pr-1 custom-scrollbar">
+      <aside className="h-screen sticky top-0 w-64 bg-[#0a0b0d] border-r border-[#202020]/40 flex flex-col justify-between p-5 z-20 sidebar-honeycomb-bg">
+        <div className="flex-1 overflow-y-auto space-y-6 pr-1 custom-scrollbar z-10 relative">
           {/* Logo */}
-          <div className="flex items-center gap-2.5 pb-4 border-b border-gray-800/80">
-            <Shield className="w-6 h-6 text-amber-500" />
+          <div className="flex items-center gap-3 pb-4 border-b border-gray-800/80">
+            <NavHexagon active={true} color="amber" size={32}>
+              <Shield className="w-5 h-5 text-amber-500" />
+            </NavHexagon>
             <div>
               <span className="font-bold text-white font-mono tracking-wider text-sm block">DcoY Console</span>
               <span className="text-[9px] text-amber-500 font-bold tracking-widest uppercase">Hive Defense</span>
@@ -357,141 +360,186 @@ export const App: React.FC = () => {
           </div>
 
           <nav className="space-y-4">
-            <div className="space-y-1">
-              <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block px-2 mb-2">Monitoring</span>
+            <div className="space-y-1.5">
+              <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase flex items-center gap-1.5 px-2 mb-2">
+                <span className="group-label-tick text-cyan-400"></span>
+                Monitoring
+              </span>
+              
               <button
                 onClick={() => setActivePage("overview")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "overview"
-                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-cyan-400 bg-cyan-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <Activity className="w-4 h-4" /> Command Overview
+                <NavHexagon active={activePage === "overview"} color="cyan" size={28}>
+                  <Activity className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Command Overview</span>
               </button>
 
               <button
                 onClick={() => setActivePage("hivemap")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "hivemap"
-                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-cyan-400 bg-cyan-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <Compass className="w-4 h-4" /> Hive Map
+                <NavHexagon active={activePage === "hivemap"} color="cyan" size={28}>
+                  <Compass className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Hive Map</span>
               </button>
 
               <button
                 onClick={() => setActivePage("deception")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "deception"
-                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-cyan-400 bg-cyan-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <Bug className="w-4 h-4" /> Deception Grid
+                <NavHexagon active={activePage === "deception"} color="cyan" size={28}>
+                  <Bug className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Deception Grid</span>
               </button>
 
               <button
                 onClick={() => setActivePage("intel")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "intel"
-                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-cyan-400 bg-cyan-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <Globe className="w-4 h-4" /> Threat Intelligence
+                <NavHexagon active={activePage === "intel"} color="cyan" size={28}>
+                  <Globe className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Threat Intel</span>
               </button>
 
               <button
                 onClick={() => setActivePage("geolocation")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "geolocation"
-                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-cyan-400 bg-cyan-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <MapPin className="w-4 h-4" /> Live Geolocation
+                <NavHexagon active={activePage === "geolocation"} color="cyan" size={28}>
+                  <MapPin className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Live Geolocation</span>
               </button>
 
               <button
                 onClick={() => setActivePage("simulation")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "simulation"
-                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-cyan-400 bg-cyan-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <Target className="w-4 h-4" /> Attack Simulation
+                <NavHexagon active={activePage === "simulation"} color="cyan" size={28}>
+                  <Target className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Attack Simulation</span>
               </button>
 
               <button
                 onClick={() => setActivePage("health")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "health"
-                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-cyan-400 bg-cyan-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <Activity className="w-4 h-4" /> Platform Health
+                <NavHexagon active={activePage === "health"} color="cyan" size={28}>
+                  <Activity className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Platform Health</span>
               </button>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block px-2 mb-2">Management</span>
+            <div className="space-y-1.5">
+              <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase flex items-center gap-1.5 px-2 mb-2">
+                <span className="group-label-tick text-amber-500"></span>
+                Management
+              </span>
+
               <button
                 onClick={() => setActivePage("investigations")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "investigations"
-                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-amber-400 bg-amber-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <ClipboardList className="w-4 h-4" /> Investigations
+                <NavHexagon active={activePage === "investigations"} color="amber" size={28}>
+                  <ClipboardList className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Investigations</span>
               </button>
 
               <button
                 onClick={() => setActivePage("rules")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "rules"
-                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-amber-400 bg-amber-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <Sliders className="w-4 h-4" /> Detection Rules
+                <NavHexagon active={activePage === "rules"} color="amber" size={28}>
+                  <Sliders className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Detection Rules</span>
               </button>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block px-2 mb-2">Executive</span>
+            <div className="space-y-1.5">
+              <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase flex items-center gap-1.5 px-2 mb-2">
+                <span className="group-label-tick text-violet-400"></span>
+                Executive
+              </span>
+
               <button
                 onClick={() => setActivePage("executive")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "executive"
-                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-violet-400 bg-violet-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <Award className="w-4 h-4" /> Executive Dashboard
+                <NavHexagon active={activePage === "executive"} color="violet" size={28}>
+                  <Award className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">Executive Dash</span>
               </button>
 
               <button
                 onClick={() => setActivePage("report")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`w-full flex items-center gap-3 px-2 py-1 text-xs font-semibold rounded-md transition-colors group ${
                   activePage === "report"
-                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                    ? "text-violet-400 bg-violet-950/15"
+                    : "text-gray-400 hover:text-white hover:bg-gray-850/30"
                 }`}
               >
-                <FileText className="w-4 h-4" /> PDF reporting
+                <NavHexagon active={activePage === "report"} color="violet" size={28}>
+                  <FileText className="w-4 h-4" />
+                </NavHexagon>
+                <span className="font-mono tracking-wide">PDF Reporting</span>
               </button>
             </div>
           </nav>
         </div>
 
         {/* System info & logout */}
-        <div className="space-y-4 pt-4 border-t border-gray-800/80">
-          <div className="p-3 bg-[#111827]/40 rounded border border-gray-800/50 space-y-1.5 text-[10px]">
+        <div className="space-y-4 pt-4 border-t border-gray-800/80 z-10 relative">
+          <div className="p-3 faceted-panel-status space-y-1.5 text-[10px]">
             <div className="flex justify-between">
               <span className="text-gray-500">DECOY SYSTEM:</span>
               <span className="text-green-500 font-bold">ONLINE</span>

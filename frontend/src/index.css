@@ -199,3 +199,55 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Honeycomb theme elements */
+.sidebar-honeycomb-bg {
+  position: relative;
+}
+.sidebar-honeycomb-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 66L0 50L0 18L28 2L56 18L56 50Z M28 66L28 100 M0 18L28 34L56 18 M0 50L28 66L56 50 M0 100L28 84L56 100' stroke='rgba(255,255,255,0.015)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-size: 28px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.faceted-panel-status {
+  clip-path: polygon(
+    0 8px, 
+    8px 0, 
+    calc(100% - 8px) 0, 
+    100% 8px, 
+    100% calc(100% - 8px), 
+    calc(100% - 8px) 100%, 
+    8px 100%, 
+    0 calc(100% - 8px)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(17, 24, 39, 0.4);
+}
+
+.group-label-tick {
+  display: inline-block;
+  width: 6px;
+  height: 9px;
+  background-color: currentColor;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-slow {
+    animation: none !important;
+  }
+}
+
+
