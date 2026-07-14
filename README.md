@@ -27,7 +27,7 @@ The platform combines:
 - Machine-learning anomaly detection with Isolation Forest.
 - Active deception and honeypot response orchestration.
 - Local Copilot-style reasoning through Ollama/Llama 3 with circuit-breaker fallbacks.
-- Streamlit-based SOC workspaces for analysts and security operators.
+- React-based SOC workspaces for analysts and security operators.
 - DB-backed investigation and detection-rule management.
 - Executive Intelligence dashboards for SOC managers and CISOs.
 - A standalone React/TypeScript enterprise design system for future frontend work.
@@ -57,7 +57,7 @@ DcoY is built to feel like practical enterprise security software: calm, technic
 The Executive Intelligence workspace is available at:
 
 ```text
-http://localhost:8501/?page=executive
+http://localhost:5173/
 ```
 
 It includes:
@@ -141,11 +141,11 @@ DcoY/
       utils/               Auth, repository, reporting, geolocation, stores
       main.py              FastAPI application entry point
     tests/                 Backend test suite
-  dashboard/
-    app.py                 Streamlit dashboard entry point
-    components/            SOC workspace components
-    services/              Backend API clients
-    utils/                 Theme, constants, formatting helpers
+  frontend/
+    src/
+      views/               React dashboard page views
+      hooks/               useRealtimeChannel and state hook layers
+      services/            REST api client services
   design-system/
     src/
       tokens/              Semantic design tokens
@@ -179,12 +179,13 @@ DcoY/
 - ReportLab
 - Ollama/Llama 3 integration
 
-### Dashboard
+### Frontend Dashboard
 
-- Streamlit
-- Plotly
-- Streamlit Autorefresh
-- Requests
+- React
+- TypeScript
+- Vite
+- Lucide React
+- CSS Variables (Hive Defense Theme)
 
 ### Design System
 
@@ -244,20 +245,20 @@ Interactive API docs:
 http://127.0.0.1:8000/docs
 ```
 
-### 3. Start the Streamlit dashboard
+### 3. Start the React dashboard
 
 In a new terminal:
 
 ```bash
-cd dashboard
-pip install -r requirements.txt
-python -m streamlit run app.py
+cd frontend
+npm install
+npm run dev
 ```
 
-Dashboard:
+Dashboard (runs on Port 5173 by default):
 
 ```text
-http://localhost:8501
+http://localhost:5173
 ```
 
 ### 4. Run the telemetry simulator
@@ -281,7 +282,7 @@ docker-compose up --build
 Services:
 
 - Backend API: `http://localhost:8000`
-- Streamlit Dashboard: `http://localhost:8501`
+- React Dashboard: `http://localhost:5173`
 
 ---
 
@@ -351,7 +352,7 @@ python -m pytest backend/tests/test_rule_quality.py -q
 
 ## Release Milestones & Roadmap
 
-- **v0.1.0-alpha**: Real-time telemetry, ML anomaly detection, active deception, Streamlit SOC workspaces, detection engineering, and executive dashboards.
+- **v0.1.0-alpha**: Real-time telemetry, ML anomaly detection, active deception, React SOC workspaces, detection engineering, and executive dashboards.
 - **v1.0.0-rc1 (Current)**:
   - **Security Knowledge Graph**: Directional entity relationships with caching and degree centrality analytics.
   - **Attack Path Engine**: Dijkstra-based shortest-path traversal mapping threat movements alongside matching defensive controls.

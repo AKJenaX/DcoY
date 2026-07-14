@@ -10,7 +10,7 @@ This is the initial alpha release scaffold preparing DcoY for open-source availa
 
 ### Added
 * **Standardized Backend Schemas**: Unified Pydantic V2 data models inside `backend/app/models/` to govern API payload structures.
-* **Modular Streamlit Dashboard**: Refactored `dashboard/app.py` into separate folders (`components/`, `services/`, `utils/`) to improve readability and code reuse.
+* **Modular React Dashboard**: Refactored the frontend dashboard into React + Vite inside the `frontend/` directory to improve readability and code reuse.
 * **Fail-Fast LLM Reasoning**: Redesigned local Ollama calls in `reasoning_agent.py` to use fast TCP port socket probes (150ms timeout limit) and a circuit breaker (`CLOSED`/`OPEN`/`HALF-OPEN` states) to bypass LLM timeouts when offline.
 * **Inference and Health Caching**: Cached successful LLM responses and socket health checks to improve performance.
 * **Interactive Chat Copilot**: Integrated a Q&A security assistant widget in the dashboard UI connecting to the backend `/ask` endpoint.

@@ -176,7 +176,7 @@ export const ExecutiveDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* KPI Row (Six columns matching Streamlit) */}
+      {/* KPI Row (Six columns) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
           ["Open Cases", kpis.open_investigations, "Active incidents", "border-amber-500/20 text-amber-500"],
