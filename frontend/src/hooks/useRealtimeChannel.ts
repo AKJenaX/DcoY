@@ -85,7 +85,7 @@ export function useRealtimeChannel(channel: string) {
       const token = localStorage.getItem("auth_token") || "";
       const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
-        ? "localhost:8000" 
+        ? "localhost:8001" 
         : window.location.host;
       
       const wsUrl = `${wsProtocol}//${wsHost}/ws/${channel}?token=${token}`;
