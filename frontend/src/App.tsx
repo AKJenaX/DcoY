@@ -345,9 +345,8 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] flex text-gray-300">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-[#0a0b0d] border-r border-[#202020]/40 flex flex-col justify-between p-5 z-20">
-        <div className="space-y-6">
+      <aside className="h-screen sticky top-0 w-64 bg-[#0a0b0d] border-r border-[#202020]/40 flex flex-col justify-between p-5 z-20">
+        <div className="flex-1 overflow-y-auto space-y-6 pr-1 custom-scrollbar">
           {/* Logo */}
           <div className="flex items-center gap-2.5 pb-4 border-b border-gray-800/80">
             <Shield className="w-6 h-6 text-amber-500" />
