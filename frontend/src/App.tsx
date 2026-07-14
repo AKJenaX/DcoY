@@ -356,84 +356,84 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          <nav className="space-y-4 perspective-container">
+          <nav className="space-y-4">
             <div className="space-y-1">
               <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block px-2 mb-2">Monitoring</span>
               <button
                 onClick={() => setActivePage("overview")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "overview"
-                    ? "active-3d-amber border-l-2 border-amber-500 text-amber-500"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <Activity className="nav-icon-3d w-4 h-4" /> Command Overview
+                <Activity className="w-4 h-4" /> Command Overview
               </button>
 
               <button
                 onClick={() => setActivePage("hivemap")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "hivemap"
-                    ? "active-3d-cyan border-l-2 border-cyan-500 text-cyan-400"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <Compass className="nav-icon-3d w-4 h-4" /> Hive Map
+                <Compass className="w-4 h-4" /> Hive Map
               </button>
 
               <button
                 onClick={() => setActivePage("deception")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "deception"
-                    ? "active-3d-amber border-l-2 border-amber-500 text-amber-500"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <Bug className="nav-icon-3d w-4 h-4" /> Deception Grid
+                <Bug className="w-4 h-4" /> Deception Grid
               </button>
 
               <button
                 onClick={() => setActivePage("intel")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "intel"
-                    ? "active-3d-cyan border-l-2 border-cyan-500 text-cyan-400"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <Globe className="nav-icon-3d w-4 h-4" /> Threat Intelligence
+                <Globe className="w-4 h-4" /> Threat Intelligence
               </button>
 
               <button
                 onClick={() => setActivePage("geolocation")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "geolocation"
-                    ? "active-3d-cyan border-l-2 border-cyan-500 text-cyan-400"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <MapPin className="nav-icon-3d w-4 h-4" /> Live Geolocation
+                <MapPin className="w-4 h-4" /> Live Geolocation
               </button>
 
               <button
                 onClick={() => setActivePage("simulation")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "simulation"
-                    ? "active-3d-amber border-l-2 border-amber-500 text-amber-500"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <Target className="nav-icon-3d w-4 h-4" /> Attack Simulation
+                <Target className="w-4 h-4" /> Attack Simulation
               </button>
 
               <button
                 onClick={() => setActivePage("health")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "health"
-                    ? "active-3d-cyan border-l-2 border-cyan-500 text-cyan-400"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <Activity className="nav-icon-3d w-4 h-4" /> Platform Health
+                <Activity className="w-4 h-4" /> Platform Health
               </button>
             </div>
 
@@ -441,24 +441,24 @@ export const App: React.FC = () => {
               <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block px-2 mb-2">Management</span>
               <button
                 onClick={() => setActivePage("investigations")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "investigations"
-                    ? "active-3d-cyan border-l-2 border-cyan-500 text-cyan-400"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <ClipboardList className="nav-icon-3d w-4 h-4" /> Investigations
+                <ClipboardList className="w-4 h-4" /> Investigations
               </button>
 
               <button
                 onClick={() => setActivePage("rules")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "rules"
-                    ? "active-3d-amber border-l-2 border-amber-500 text-amber-500"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <Sliders className="nav-icon-3d w-4 h-4" /> Detection Rules
+                <Sliders className="w-4 h-4" /> Detection Rules
               </button>
             </div>
 
@@ -466,24 +466,24 @@ export const App: React.FC = () => {
               <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block px-2 mb-2">Executive</span>
               <button
                 onClick={() => setActivePage("executive")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "executive"
-                    ? "active-3d-amber border-l-2 border-amber-500 text-amber-500"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-amber-500 text-amber-500 bg-amber-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <Award className="nav-icon-3d w-4 h-4" /> Executive Dashboard
+                <Award className="w-4 h-4" /> Executive Dashboard
               </button>
 
               <button
                 onClick={() => setActivePage("report")}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md nav-btn-3d ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
                   activePage === "report"
-                    ? "active-3d-cyan border-l-2 border-cyan-500 text-cyan-400"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/20"
+                    ? "border-l-2 border-cyan-500 text-cyan-400 bg-cyan-500/10"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
-                <FileText className="nav-icon-3d w-4 h-4" /> PDF reporting
+                <FileText className="w-4 h-4" /> PDF reporting
               </button>
             </div>
           </nav>
