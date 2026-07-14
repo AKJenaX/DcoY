@@ -27,7 +27,7 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
   raw = false,
 }) => {
   // Helper to generate cubic bezier control points for smooth natural curves
-  const generateBezierPath = (points: Point[], dx = 130) => {
+  const generateBezierPath = (points: Point[], scaleMode: "login" | "map") => {
     if (points.length === 0) return "";
     if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
     
@@ -35,10 +35,32 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
     for (let i = 0; i < points.length - 1; i++) {
       const p0 = points[i];
       const p1 = points[i + 1];
-      const cp1x = p0.x + dx;
-      const cp1y = p0.y;
-      const cp2x = p1.x - dx;
-      const cp2y = p1.y;
+      
+      const dx = p1.x - p0.x;
+      const dy = p1.y - p0.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      // Stable coordinate hash between 0.1 and 0.9 to ensure deterministic curves
+      const hash = 0.1 + (Math.abs(Math.sin(p0.x * 12.9898 + p0.y * 78.233) * 43758.5453) % 0.8);
+      
+      // Control point tension (0.2 to 0.45)
+      const tension = 0.2 + hash * 0.25;
+      
+      // Perpendicular offsets to create organic dodging/obstacle avoidance effect
+      const perpX = -dy / (dist || 1);
+      const perpY = dx / (dist || 1);
+      
+      // Organic curve tightness variations (amplitude of control point offset)
+      // Map mode has tighter nodes so we scale displacement accordingly
+      const amplitudeFactor = scaleMode === "map" ? 0.22 : 0.35;
+      const curveTightness = (hash - 0.5) * dist * amplitudeFactor;
+      
+      const cp1x = p0.x + dx * tension + perpX * curveTightness;
+      const cp1y = p0.y + dy * tension + perpY * curveTightness;
+      
+      const cp2x = p1.x - dx * tension - perpX * curveTightness;
+      const cp2y = p1.y - dy * tension - perpY * curveTightness;
+      
       d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
     }
     return d;
@@ -70,8 +92,8 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
   }, [customPointsB]);
 
   // Generate SVG path geometries
-  const pathA = useMemo(() => generateBezierPath(pointsA, mode === "map" ? 25 : 130), [pointsA, mode]);
-  const pathB = useMemo(() => generateBezierPath(pointsB, mode === "map" ? 25 : 130), [pointsB, mode]);
+  const pathA = useMemo(() => generateBezierPath(pointsA, mode), [pointsA, mode]);
+  const pathB = useMemo(() => generateBezierPath(pointsB, mode), [pointsB, mode]);
 
   // Identify waypoints along both lines (e.g. 2nd and 5th points)
   const waypointsA = useMemo(() => {
