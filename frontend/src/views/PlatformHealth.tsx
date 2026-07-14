@@ -223,12 +223,12 @@ export const PlatformHealth: React.FC = () => {
               Observability API Request Latency (ms)
             </h2>
             {health?.latency_history && health.latency_history.length > 0 ? (
-              <div className="h-40 flex items-center justify-center">
+              <div className="w-full">
                 <SvgLineChart 
                   data={health.latency_history} 
                   labels={health.latency_history.map((_, i) => `T-${health.latency_history.length - 1 - i}`)} 
                   color="#22d3ee" 
-                  height={140}
+                  height={180}
                 />
               </div>
             ) : (
