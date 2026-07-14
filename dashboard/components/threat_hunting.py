@@ -663,8 +663,14 @@ def render_threat_hunting_page(
 
             # Output Response Box
             if st.session_state.ai_hunt_response:
+                from dashboard.components.widget_variants import render_ai_markdown_widget
                 st.markdown("<hr style='margin: 0.5rem 0; border: none; border-top: 1px solid var(--border-color);' />", unsafe_allow_html=True)
-                st.markdown(st.session_state.ai_hunt_response)
+                render_ai_markdown_widget(
+                    title="AI Hunt Assistant Analysis",
+                    markdown_text=st.session_state.ai_hunt_response,
+                    default_subtitle="Threat Hunting Workspace",
+                    key="ai_hunt_result"
+                )
                 if st.button("Dismiss AI Response", key="dismiss_ai_hunt_btn"):
                     st.session_state.ai_hunt_response = None
                     st.rerun()

@@ -466,27 +466,15 @@ def render_soar_page(
     with ai_col2:
         if st.session_state.soar_ai_results:
             res = st.session_state.soar_ai_results
-            st.markdown(
-                f"""
-                <div class="ai-widget-output" style="padding:1.25rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:0.5rem; margin-bottom:0.75rem;">
-                        <span style="font-weight:700; color:var(--primary);">COPILOT ORCHESTRATION FEEDBACK</span>
-                        <span style="font-size:0.75rem; background:var(--primary-bg); color:var(--primary); padding:0.2rem 0.5rem; border-radius:3px;">
-                            CONFIDENCE: {res.get('confidence', 'N/A')}
-                        </span>
-                    </div>
-                    {"".join(f"<p style='margin:0.4rem 0; font-size:0.9rem;'>{b}</p>" for b in res.get('bullets', []))}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            from dashboard.components.widget_variants import AIWidget
             
-            # Interactive action items proposed by AI
-            if res.get("actions"):
-                st.markdown("<p style='font-size:0.8rem; margin: 0.5rem 0 0.25rem 0; color:var(--text-secondary);'>Quick-Apply Actions Suggested by Copilot:</p>", unsafe_allow_html=True)
-                for act in res["actions"]:
-                    if st.button(f"⚡ Apply: {act}", key=f"quick_{act}"):
-                        st.info(f"Applying AI optimization: '{act}'. (Mock Action Executed Successfully)")
-                        time.sleep(1)
+            AIWidget(
+                title="Copilot Orchestration Feedback",
+                bullets=res.get("bullets", []),
+                subtitle="SOAR Insights Analysis",
+                confidence=res.get("confidence", "High (90%)"),
+                actions=res.get("actions", []),
+                key="soar_ai"
+            ).render()
         else:
             render_empty_state("Select a perspective and click 'Query Copilot Insights' to generate visual playbook reviews.", "AI Copilot Standby")

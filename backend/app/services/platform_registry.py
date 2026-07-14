@@ -55,10 +55,28 @@ class PlatformRegistry:
         assets_count = 0
         edges_count = 0
         try:
+            from app.models.intelligence import DBIntelligenceCorrelation
             assets_count = db.query(DBAsset).count()
-            edges_count = db.query(DBKnowledgeGraphEdge).count()
+            edges_count = db.query(DBKnowledgeGraphEdge).count() + db.query(DBIntelligenceCorrelation).count()
         except Exception:
             pass
+
+        # WebSocket channel connection counts
+        ws_counts = {}
+        try:
+            from app.utils.websocket_manager import manager
+            for channel, conns in manager.active_connections.items():
+                ws_counts[channel] = len(conns)
+        except Exception:
+            ws_counts = {"telemetry": 0, "geolocation": 0, "simulation": 0}
+
+        # SQLite lock retry metrics
+        from app.database import SQLITE_LOCK_RETRY_METRICS
+        sqlite_retries = SQLITE_LOCK_RETRY_METRICS.copy()
+
+        # Ollama status
+        from app.agents.reasoning_agent import is_llm_available
+        ollama_status = "live" if is_llm_available() else "fallback"
 
         return {
             "uptime_seconds": uptime_seconds,
@@ -68,7 +86,7 @@ class PlatformRegistry:
                 "rule_engine": "Active" if enabled_rules_count > 0 else "Idle",
                 "knowledge_graph": "Fresh" if edges_count > 0 else "Uninitialized",
                 "deception_agent": "Operational",
-                "ai_copilot_service": "Standby"
+                "ai_copilot_service": "Live" if ollama_status == "live" else "Fallback"
             },
             "metrics": {
                 "average_latency_ms": round(avg_latency, 2),
@@ -79,7 +97,11 @@ class PlatformRegistry:
                 "enabled_rules": enabled_rules_count,
                 "monitored_assets": assets_count,
                 "graph_relationships": edges_count
-            }
+            },
+            "latency_history": self._latency_log.copy(),
+            "websocket_connections": ws_counts,
+            "sqlite_lock_retries": sqlite_retries,
+            "copilot_source": ollama_status
         }
 
     def get_documentation(self) -> Dict[str, Any]:

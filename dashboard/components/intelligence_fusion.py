@@ -310,7 +310,13 @@ def render_intelligence_fusion_page(explain_rows: List[Dict[str, Any]], detect_r
                         payload = {"prompt": prompt_option}
                         resp = requests.post(f"{api_base}/api/soar/intelligence/ai-assistant", json=payload, headers=headers, timeout=5, verify=False)
                         if resp.status_code == 200:
-                            st.markdown(resp.json().get("answer", ""))
+                            from dashboard.components.widget_variants import render_ai_markdown_widget
+                            render_ai_markdown_widget(
+                                title="AI Intelligence Fusion Insights",
+                                markdown_text=resp.json().get("answer", ""),
+                                default_subtitle=prompt_option,
+                                key="ai_fusion_result"
+                            )
                         else:
                             st.error("Failed to generate AI insights.")
                     except Exception as e:

@@ -22,6 +22,7 @@ class EventModel(BaseModel):
     honeypot: Optional[str] = Field(default=None, description="Direct select_honeypot result")
     response_action: Optional[str] = Field(default=None, description="Direct select_honeypot response action")
     response_status: Optional[str] = Field(default=None, description="Direct select_honeypot response status")
+    location: Optional[GeolocationInfo] = Field(default=None, description="Attacker location details")
 
 
 class IngestPayload(BaseModel):
@@ -37,6 +38,7 @@ class GeolocationInfo(BaseModel):
     country: str = Field(default="Unknown", description="Country name")
     city: str = Field(default="Unknown", description="City name")
     region: str = Field(default="Unknown", description="Region name")
+    geo_source: Optional[str] = Field(default="live", description="Source of coordinate data (live or mock)")
 
 
 class AgentMessageModel(BaseModel):

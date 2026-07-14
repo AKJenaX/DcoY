@@ -10,6 +10,7 @@ from app.models.simulation import DBSimulationRun
 from app.models.detection_rule import DBDetectionRule
 from app.services.rule_engine import RuleEngine
 from app.services.simulation_engine import SimulationEngine
+from app.utils.cache import SimpleCache
 
 
 class AttackSimulator:
@@ -19,15 +20,26 @@ class AttackSimulator:
         self.rule_engine = RuleEngine()
         # In-memory cache for evaluation optimizations
         # Key: (scenario_name, rule_id, rule_version) -> Match Result
-        self._evaluation_cache: Dict[str, Any] = {}
+        self._evaluation_cache = SimpleCache(max_size=5000)
 
-    def execute_simulation(self, db: Session, scenario_name: str, custom_params: Optional[Dict[str, Any]] = None) -> DBSimulationRun:
+    def execute_simulation(self, db: Session, scenario_name: str, custom_params: Optional[Dict[str, Any]] = None, run_id: Optional[int] = None) -> DBSimulationRun:
         """Run synthetic simulation, evaluate active rules, and save details to database."""
         custom_params = custom_params or {}
         started_at = datetime.now(timezone.utc)
         
         # 1. Generate synthetic telemetry
         telemetry = SimulationEngine.generate_scenario_telemetry(scenario_name, custom_params)
+        
+        # Broadcast start
+        from app.utils.websocket_manager import broadcast_sync
+        broadcast_sync("simulation", {
+            "run_id": run_id,
+            "scenario_name": scenario_name,
+            "status": "started",
+            "step": 0,
+            "total_steps": len(telemetry),
+            "started_at": started_at.isoformat()
+        })
         
         # 2. Get active detection rules
         rules = db.query(DBDetectionRule).filter(DBDetectionRule.status == "Enabled").all()
@@ -53,11 +65,12 @@ class AttackSimulator:
                 cache_key = f"{scenario_name}_{rule_any.id}_{rule_any.version}_{idx}"
                 
                 # Performance Cache Check
-                if cache_key in self._evaluation_cache:
-                    is_match = self._evaluation_cache[cache_key]
+                cached_match = self._evaluation_cache.get(cache_key)
+                if cached_match is not None:
+                    is_match = cached_match
                 else:
                     is_match = self.rule_engine.evaluate_event(rule, event)
-                    self._evaluation_cache[cache_key] = is_match
+                    self._evaluation_cache.set(cache_key, is_match)
                 
                 if is_match:
                     event_detected = True
@@ -75,7 +88,7 @@ class AttackSimulator:
             # Record detection latency (mock simulated value)
             latency = round(random.uniform(0.4, 2.8), 2) if event_detected else 0.0
             
-            timeline_events.append({
+            step_event = {
                 "timestamp": event["timestamp"],
                 "technique": event.get("mitre_technique", "Unknown Technique"),
                 "host": event.get("host", "Unknown Host"),
@@ -85,7 +98,21 @@ class AttackSimulator:
                 "detection_latency_sec": latency,
                 "matching_rules": matching_rules_for_event,
                 "details": event.get("details", {})
+            }
+            timeline_events.append(step_event)
+            
+            # Broadcast this running step
+            from app.utils.websocket_manager import broadcast_sync
+            broadcast_sync("simulation", {
+                "run_id": run_id,
+                "scenario_name": scenario_name,
+                "status": "running",
+                "step": idx + 1,
+                "total_steps": len(telemetry),
+                "event": step_event
             })
+            # Small sleep to simulate real-time analysis progression
+            time.sleep(1.0)
             
         # Determine missed rules (rules that map to this scenario's techniques but did not trigger)
         for rule in rules:
@@ -162,6 +189,18 @@ class AttackSimulator:
         db.add(sim_run)
         db.commit()
         db.refresh(sim_run)
+        
+        # Broadcast completion
+        from app.utils.websocket_manager import broadcast_sync
+        broadcast_sync("simulation", {
+            "run_id": run_id or sim_run.id,
+            "scenario_name": scenario_name,
+            "status": "completed",
+            "step": len(telemetry),
+            "total_steps": len(telemetry),
+            "completed_at": completed_at.isoformat(),
+            "results": results_summary
+        })
         
         return sim_run
 

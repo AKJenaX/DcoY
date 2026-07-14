@@ -310,6 +310,8 @@ def build_executive_metrics(
     db: Session,
     telemetry: List[Dict[str, Any]],
     rule_metrics: Optional[List[Dict[str, Any]]] = None,
+    kg_engine: Optional[Any] = None,
+    platform_registry: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """Aggregate telemetry, case state, and detection rule state for executives."""
     now = datetime.now(timezone.utc)
@@ -427,14 +429,15 @@ def build_executive_metrics(
         "analyst_productivity": round((len(resolved_cases) + trends["critical_alerts_24h"]) / analyst_count, 1),
     }
 
-    from app.services.knowledge_graph_engine import KnowledgeGraphEngine
-    from app.services.platform_registry import PlatformRegistry
-    
-    kg_engine = KnowledgeGraphEngine()
+    if kg_engine is None:
+        from app.services.knowledge_graph_engine import KnowledgeGraphEngine
+        kg_engine = KnowledgeGraphEngine()
     kg_analytics = kg_engine.get_analytics(db)
     
-    registry = PlatformRegistry()
-    health_data = registry.get_health_status(db)
+    if platform_registry is None:
+        from app.services.platform_registry import PlatformRegistry
+        platform_registry = PlatformRegistry()
+    health_data = platform_registry.get_health_status(db)
 
     metrics = {
         "generated_at": now.isoformat(),

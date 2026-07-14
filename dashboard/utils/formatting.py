@@ -41,6 +41,7 @@ def format_attack_locations(explain_rows: List[Dict[str, Any]]) -> List[Dict[str
                     "ip": row.get("ip", "Unknown"),
                     "country": loc.get("country", "Unknown"),
                     "city": loc.get("city", "Unknown"),
+                    "geo_source": loc.get("geo_source", "live")
                 })
     return locations
 

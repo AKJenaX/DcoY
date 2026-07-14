@@ -11,20 +11,18 @@ from app.models.detection_rule import DBDetectionRule
 from app.models.simulation import DBSimulationRun
 from app.models.workflow import DBWorkflowExecution
 from app.models.knowledge_graph import DBKnowledgeGraphEdge
+from app.utils.cache import SimpleCache
 
 
 class CorrelationEngine:
     """Computes directed relationship links between all core database entities and threat intelligence objects."""
 
-    _cached_graph: Optional[Dict[str, List[Any]]] = None
-    _last_build_time: float = 0.0
-    CACHE_DURATION_SEC = 10.0  # 10s caching to optimize web requests
+    _cached_graph = SimpleCache(default_ttl_sec=10.0, max_size=5)
 
     def rebuild_correlation_graph(self, db: Session):
         """Analyze database tables and compute correlation links, purging the old edges and inserting new ones."""
-        # 1. Clear previous correlation table and auto-computed graph edges
+        # 1. Clear previous correlation table
         db.query(DBIntelligenceCorrelation).delete()
-        db.query(DBKnowledgeGraphEdge).filter(DBKnowledgeGraphEdge.description == "Auto-computed correlation").delete()
         db.commit()
 
         correlations: List[DBIntelligenceCorrelation] = []
@@ -120,48 +118,10 @@ class CorrelationEngine:
             db.add_all(correlations)
             db.commit()
 
-            # Mirror to DBKnowledgeGraphEdge for true security knowledge graph implementation
-            kg_edges = []
-            for corr in correlations:
-                rel_map = {
-                    "implicated_in": "investigated_by",
-                    "covered_by": "detected_by",
-                    "targets_hash": "detected_by",
-                    "tested_in": "simulated_by",
-                    "orchestrated_by": "orchestrated_by"
-                }
-                rel_class = cast(str, corr.relationship_class)
-                rel_type = rel_map.get(rel_class, "related_to")
-                
-                src_id = cast(str, corr.source_id)
-                src_type = cast(str, corr.source_type)
-                if ":" not in src_id:
-                    src_id = f"{src_type}:{src_id}"
-                tgt_id = cast(str, corr.target_id)
-                tgt_type = cast(str, corr.target_type)
-                if ":" not in tgt_id:
-                    tgt_id = f"{tgt_type}:{tgt_id}"
-                    
-                kg_edges.append(DBKnowledgeGraphEdge(
-                    source_id=src_id,
-                    source_type=src_type,
-                    target_id=tgt_id,
-                    target_type=tgt_type,
-                    relationship_type=rel_type,
-                    weight=corr.weight,
-                    description="Auto-computed correlation"
-                ))
-            if kg_edges:
-                db.add_all(kg_edges)
-                db.commit()
-
-        self._last_build_time = time.time()
-
     def get_correlation_graph(self, db: Session, force_rebuild: bool = False) -> Dict[str, List[Any]]:
         """Return the nodes and edges representation of the calculated intelligence graph."""
-        now = time.time()
-        # Cache traversal logic
-        if force_rebuild or (now - self._last_build_time > self.CACHE_DURATION_SEC) or (self._cached_graph is None):
+        cached = self._cached_graph.get("graph")
+        if force_rebuild or cached is None:
             self.rebuild_correlation_graph(db)
             
             # Fetch relationships
@@ -227,9 +187,11 @@ class CorrelationEngine:
                 node_id = f"{ioc_type}:{ioc_val}"
                 add_node(node_id, ioc_type)
 
-            self._cached_graph = {
+            payload = {
                 "nodes": nodes_payload,
                 "edges": edges_payload
             }
+            self._cached_graph.set("graph", payload)
+            return payload
 
-        return self._cached_graph
+        return cached

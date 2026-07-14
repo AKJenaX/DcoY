@@ -13,16 +13,16 @@ from app.models.simulation import DBSimulationRun
 from app.models.workflow import DBWorkflowExecution, DBWorkflow
 from app.models.playbook import DBResponsePlaybook, DBPlaybookExecution
 from app.models.knowledge_graph import DBAsset, DBUserNode, DBExecutiveReport, DBKnowledgeGraphEdge
+from app.utils.cache import SimpleCache
 
 
 class KnowledgeGraphEngine:
     """Manages the lifecycle, caching, and metrics aggregation of the Security Knowledge Graph."""
 
-    _cached_graph: Optional[Dict[str, Any]] = None
+    _cached_graph = SimpleCache(default_ttl_sec=15.0, max_size=5)
     _last_build_time: float = 0.0
     _last_rebuild_timestamp: Optional[datetime] = None
     _last_profile_duration_ms: float = 0.0
-    CACHE_DURATION_SEC = 15.0  # 15s cache duration
 
     def rebuild_graph(self, db: Session) -> Dict[str, Any]:
         """Compute the unified graph structure and cache it."""
@@ -259,21 +259,22 @@ class KnowledgeGraphEngine:
                 label = parts[1] if len(parts) > 1 else nid
                 add_node(nid, ntype, label, risk=0.5, confidence=1.0)
 
-        self._cached_graph = {
+        payload = {
             "nodes": nodes,
             "edges": edges
         }
+        self._cached_graph.set("graph", payload)
         self._last_build_time = time.time()
         self._last_rebuild_timestamp = datetime.now(timezone.utc)
         self._last_profile_duration_ms = (time.perf_counter() - t_start) * 1000.0
-        return self._cached_graph
+        return payload
 
     def get_graph(self, db: Session, force_rebuild: bool = False) -> Dict[str, Any]:
         """Fetch cached graph or trigger rebuild."""
-        now = time.time()
-        if force_rebuild or (self._cached_graph is None) or (now - self._last_build_time > self.CACHE_DURATION_SEC):
+        cached = self._cached_graph.get("graph")
+        if force_rebuild or cached is None:
             return self.rebuild_graph(db)
-        return self._cached_graph
+        return cached
 
     def add_custom_edge(self, db: Session, source_id: str, source_type: str, target_id: str, target_type: str, rel_type: str, weight: float, desc: str = "") -> DBKnowledgeGraphEdge:
         """Incrementally add a relationship link to the database and clear cache."""
@@ -290,7 +291,7 @@ class KnowledgeGraphEngine:
         db.add(edge)
         db.commit()
         db.refresh(edge)
-        self._cached_graph = None  # invalidate cache
+        self._cached_graph.clear()  # invalidate cache
         return edge
 
     def get_analytics(self, db: Session) -> Dict[str, Any]:

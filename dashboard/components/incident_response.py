@@ -529,26 +529,15 @@ def render_incident_response_page(
                     # Render AI Copilot results
                     ai_results = st.session_state.ir_ai_results
                     if ai_results:
-                        st.markdown("<br/>", unsafe_allow_html=True)
-                        st.markdown(
-                            f"""
-                            <div style="border:1px solid var(--primary); border-radius:6px; padding:0.75rem; background-color:var(--card-bg-sec);">
-                              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                                <span style="font-weight:700; color:var(--primary); font-size:0.9rem;">🧠 AI Security Assistant Response</span>
-                                <span style="font-size:0.7rem; color:var(--text-secondary); border:1px solid var(--border-color); border-radius:3px; padding:0.1rem 0.35rem; font-weight:700;">
-                                  Confidence: {ai_results['confidence']}
-                                </span>
-                              </div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
-                        for b in ai_results.get("bullets", []):
-                            st.markdown(f"<span style='font-size:0.85rem;'>{b}</span>", unsafe_allow_html=True)
-                        
-                        st.markdown("<br/><b>Recommended Actions:</b>", unsafe_allow_html=True)
-                        for a in ai_results.get("actions", []):
-                            st.button(f"🎯 Execute: {a}", key=f"ai_action_btn_{sel_inc_id}_{a}")
+                        from dashboard.components.widget_variants import AIWidget
+                        AIWidget(
+                            title="AI Security Assistant Response",
+                            bullets=ai_results.get("bullets", []),
+                            subtitle="Incident Intelligence Analysis",
+                            confidence=ai_results.get("confidence", "High (90%)"),
+                            actions=ai_results.get("actions", []),
+                            key=f"ir_ai_{sel_inc_id}"
+                        ).render()
 
                 # ─── TAB 4: Response Timeline ──────────────────────────────────────
                 with tab_timeline:

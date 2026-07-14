@@ -323,3 +323,52 @@ def render_executive_widget(title: str, value: str, subtitle: Optional[str] = No
 def render_empty_state(title: str, message: str, icon: str = "◌"):
     """Render a polished empty state for sparse or empty data views."""
     return EmptyStateWidget(title, message, icon).render()
+
+
+def render_ai_markdown_widget(
+    title: str,
+    markdown_text: str,
+    default_subtitle: Optional[str] = None,
+    key: Optional[str] = None,
+    actions: Optional[List[str]] = None,
+):
+    """Parses arbitrary markdown and renders it as a structured AIWidget card."""
+    lines = [line.strip() for line in markdown_text.split("\n") if line.strip()]
+    subtitle = default_subtitle
+    bullets = []
+    confidence = None
+    mitre = []
+    
+    for line in lines:
+        if line.startswith("###"):
+            subtitle = line.replace("###", "").strip()
+        elif line.startswith("-") or line.startswith("*"):
+            val = line.lstrip("-* ").strip()
+            bullets.append(val)
+        elif line.startswith("1.") or line.startswith("2.") or line.startswith("3.") or line.startswith("4."):
+            val = line.split(".", 1)[1].strip()
+            bullets.append(val)
+        elif "confidence" in line.lower() or "score" in line.lower():
+            if ":" in line:
+                val = line.split(":", 1)[1].strip()
+                if "risk" in line.lower():
+                    bullets.append(line.replace("**", "").strip())
+                else:
+                    confidence = val
+            else:
+                confidence = line
+        else:
+            if line.startswith("**") and line.endswith("**"):
+                bullets.append(line.replace("**", "").strip())
+            else:
+                bullets.append(line)
+                
+    AIWidget(
+        title=title,
+        bullets=bullets,
+        subtitle=subtitle,
+        confidence=confidence,
+        actions=actions,
+        mitre=mitre,
+        key=key,
+    ).render()

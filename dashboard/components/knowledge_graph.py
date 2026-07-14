@@ -32,9 +32,9 @@ def render_knowledge_graph_page(explain_rows: List[Dict[str, Any]], detect_rows:
         headers["Authorization"] = f"Bearer {st.session_state.auth_token}"
 
     # 2. Fetch Knowledge Graph Data & Analytics
-    graph = {"nodes": [], "edges": []}
-    analytics = {}
-    attack_paths = []
+    graph: Dict[str, Any] = {"nodes": [], "edges": []}
+    analytics: Dict[str, Any] = {}
+    attack_paths: List[Any] = []
 
     try:
         graph_resp = requests.get(f"{api_base}/api/soar/knowledge-graph/graph", headers=headers, timeout=5, verify=False)
@@ -429,7 +429,13 @@ def render_knowledge_graph_page(explain_rows: List[Dict[str, Any]], detect_rows:
                         payload = {"prompt": prompt_option}
                         resp = requests.post(f"{api_base}/api/soar/knowledge-graph/ai-assistant", json=payload, headers=headers, timeout=5, verify=False)
                         if resp.status_code == 200:
-                            st.markdown(resp.json().get("answer", ""))
+                            from dashboard.components.widget_variants import render_ai_markdown_widget
+                            render_ai_markdown_widget(
+                                title="AI Knowledge Assistant Insights",
+                                markdown_text=resp.json().get("answer", ""),
+                                default_subtitle=prompt_option,
+                                key="ai_kg_result"
+                            )
                         else:
                             st.error("AI assistant response failure.")
                     except Exception as e:

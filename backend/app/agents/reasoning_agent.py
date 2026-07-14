@@ -29,8 +29,10 @@ CB_STATE: Dict[str, Any] = {
     "last_health_check": 0.0
 }
 
+from app.utils.cache import SimpleCache
+
 # Prompt/response cache for successful LLM generation
-RESPONSE_CACHE: Dict[str, str] = {}
+RESPONSE_CACHE = SimpleCache(max_size=500, default_ttl_sec=1800.0)
 
 def _check_socket_reachable(host_url: str, timeout_ms: int = 150) -> bool:
     """Helper checking TCP socket reachability on target LLM model port."""
@@ -163,9 +165,10 @@ def _try_ollama_explanation(message: Dict[str, Any]) -> Optional[str]:
     Returns None on any failure (network, wrong model, timeout).
     """
     cache_key = _get_cache_key(message)
-    if cache_key in RESPONSE_CACHE:
+    cached_response = RESPONSE_CACHE.get(cache_key)
+    if cached_response is not None:
         logger.info(f"Response cache hit for key: {cache_key}")
-        return RESPONSE_CACHE[cache_key]
+        return cached_response
 
     if not is_llm_available():
         logger.info("LLM is unavailable or circuit is open. Falling back to template immediately.")
@@ -194,7 +197,7 @@ def _try_ollama_explanation(message: Dict[str, Any]) -> Optional[str]:
             
         text = (body.get("response") or "").strip()
         if text:
-            RESPONSE_CACHE[cache_key] = text
+            RESPONSE_CACHE.set(cache_key, text)
             _handle_llm_success()
             return text
         else:
@@ -275,38 +278,50 @@ def generate_explanation(message: Dict[str, Any], allow_llm: bool = True) -> str
             pass
     return _template_explanation(message)
 
-def answer_question(question: str, messages: List[Dict[str, Any]]) -> str:
-    """
-    Q&A: uses Ollama when available, falls back to deterministic template when offline.
-    """
+def answer_question_payload(question: str, messages: List[Dict[str, Any]]) -> Dict[str, str]:
+    """Q&A payload with an explicit source contract for live vs fallback content."""
     if not messages:
-        return "No events are available yet. Run detection when log data is present."
+        return {
+            "source": "fallback",
+            "content": "No events are available yet. Run detection when log data is present.",
+        }
 
     # Try LLM Q&A first if enabled and available
     if settings.LLM_ENABLED:
         llm_response = answer_question_with_llm(question, messages)
         if llm_response:
-            return llm_response
+            return {"source": "live", "content": llm_response}
 
     # Fallback to deterministic template
     top = max(messages, key=lambda m: float(m.get("risk_score") or 0))
-    base = generate_explanation(top)
+    base = generate_explanation(top, allow_llm=False)
     ip = top.get("ip", "unknown IP")
     q = (question or "").strip().lower()
 
     if any(word in q for word in ("why", "block", "blocked", "happen", "explain")):
-        return (
+        content = (
             f"Regarding your question: {question.strip()!r}. "
             f"The strongest signal right now is from {ip}.\n\n{base}"
         )
-    return f"Summary for the highest-risk event ({ip}):\n\n{base}"
+    else:
+        content = f"Summary for the highest-risk event ({ip}):\n\n{base}"
+
+    return {"source": "fallback", "content": content}
+
+
+def answer_question(question: str, messages: List[Dict[str, Any]]) -> str:
+    """
+    Q&A: uses Ollama when available, falls back to deterministic template when offline.
+    """
+    return answer_question_payload(question, messages)["content"]
 
 def answer_question_detailed(question: str, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Q&A with rich reliability and explainability metadata return.
     """
     start_time = time.time()
-    answer = answer_question(question, messages)
+    payload = answer_question_payload(question, messages)
+    answer = payload["content"]
     duration = time.time() - start_time
     
     # 1. Evidence calculations
@@ -353,10 +368,13 @@ def answer_question_detailed(question: str, messages: List[Dict[str, Any]]) -> D
         )
     context_telemetry = "\n".join(summary_lines)
     
-    # Check if fallback mode was used
-    fallback = not (settings.LLM_ENABLED and is_llm_available())
+    # Explicit response source replaces client-side guessing.
+    source = payload["source"]
+    fallback = source == "fallback"
     
     return {
+        "source": source,
+        "content": answer,
         "answer": answer,
         "metadata": {
             "model": settings.LLM_MODEL,

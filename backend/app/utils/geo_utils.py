@@ -19,14 +19,15 @@ _executor = ThreadPoolExecutor(max_workers=5)
 
 
 def _unknown_location(ip: str) -> Dict[str, Any]:
-    """Return a consistent unknown-location payload."""
+    """Return a consistent unknown-location payload with mock coordinates fallback."""
     return {
         "ip": ip,
-        "lat": None,
-        "lon": None,
-        "country": "Unknown",
-        "city": "Unknown",
-        "region": "Unknown"
+        "lat": 38.8951,
+        "lon": -77.0364,
+        "country": "Mock Country",
+        "city": "Mock City",
+        "region": "Mock Region",
+        "geo_source": "mock"
     }
 
 
@@ -83,7 +84,8 @@ def _get_single_location(ip: str, timeout: int = 3) -> Dict[str, Any]:
                 "lon": data.get("lon"),
                 "country": data.get("country", "Unknown"),
                 "city": data.get("city", "Unknown"),
-                "region": data.get("region", "Unknown")
+                "region": data.get("region", "Unknown"),
+                "geo_source": "live"
             }
         else:
             logger.debug(f"Geolocation API returned error for {ip}")
@@ -122,6 +124,9 @@ def get_ip_location(ip: str) -> Dict[str, Any]:
     # Cache the result before returning (thread-safe)
     with _cache_lock:
         _geo_cache[ip] = result
+    
+    from app.utils.websocket_manager import broadcast_sync
+    broadcast_sync("geolocation", result)
     
     return result
 
@@ -169,6 +174,9 @@ def batch_get_locations(ips: list) -> Dict[str, Dict[str, Any]]:
             results[ip] = result
             with _cache_lock:
                 _geo_cache[ip] = result
+            
+            from app.utils.websocket_manager import broadcast_sync
+            broadcast_sync("geolocation", result)
 
         # Return graceful fallback for timed-out lookups instead of raising.
         for future in not_done:
@@ -180,11 +188,17 @@ def batch_get_locations(ips: list) -> Dict[str, Dict[str, Any]]:
             with _cache_lock:
                 _geo_cache[ip] = fallback
 
+            from app.utils.websocket_manager import broadcast_sync
+            broadcast_sync("geolocation", fallback)
+
         # Any IPs beyond cap get immediate fallback to keep request latency bounded.
         for ip in uncached_ips[20:]:
             fallback = _unknown_location(ip)
             results[ip] = fallback
             with _cache_lock:
                 _geo_cache[ip] = fallback
+
+            from app.utils.websocket_manager import broadcast_sync
+            broadcast_sync("geolocation", fallback)
     
     return results

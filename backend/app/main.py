@@ -4,7 +4,7 @@ import logging
 import time
 from typing import Any, Dict, List, Optional, cast
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, Query
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -194,8 +194,11 @@ def ingest_events(payload: IngestPayload, user: str = Depends(get_current_user_f
     
     try:
         count = 0
+        from app.utils.websocket_manager import broadcast_sync
         for event in payload.data:
-            add_event(event.model_dump(exclude_none=True))
+            event_dict = event.model_dump(exclude_none=True)
+            add_event(event_dict)
+            broadcast_sync("telemetry", event_dict)
             count += 1
         
         logger.info(f"Ingested {count} events. Total in store: {len(get_events())}")
@@ -218,6 +221,8 @@ def capture_event(user: str = Depends(get_current_user_from_api_key)) -> Dict[st
 
     if event:
         add_event(event)
+        from app.utils.websocket_manager import broadcast_sync
+        broadcast_sync("telemetry", event)
         return {"message": "Captured event", "event": event}
 
     return {"message": "Capture failed"}
@@ -2067,10 +2072,12 @@ def get_platform_api_inventory(
     # Compile a list of routes dynamically from FastAPI application
     routes = []
     for r in app.routes:
-        methods = list(r.methods) if hasattr(r, "methods") else []
+        path = getattr(r, "path", "")
+        name = getattr(r, "name", "")
+        methods = list(getattr(r, "methods", []))
         routes.append({
-            "path": r.path,
-            "name": r.name,
+            "path": path,
+            "name": name,
             "methods": methods
         })
     return {"routes": routes}
@@ -2228,3 +2235,78 @@ def clear_interactive_demo_scenario(
     knowledge_graph_engine.rebuild_graph(db)
 
     return {"status": "success", "message": "Synthetic attack demo records cleared."}
+
+
+@app.websocket("/ws/telemetry")
+async def websocket_telemetry(websocket: WebSocket, token: Optional[str] = Query(None)):
+    from app.utils.websocket_manager import manager
+    from app.utils.auth_utils import decode_access_token
+
+    if not token:
+        await websocket.close(code=4003)
+        return
+
+    payload = decode_access_token(token)
+    if not payload or "user" not in payload:
+        await websocket.close(code=4003)
+        return
+
+    await manager.connect("telemetry", websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect("telemetry", websocket)
+    except Exception as e:
+        logger.warning(f"WebSocket error on /ws/telemetry: {e}")
+        manager.disconnect("telemetry", websocket)
+
+
+@app.websocket("/ws/geolocation")
+async def websocket_geolocation(websocket: WebSocket, token: Optional[str] = Query(None)):
+    from app.utils.websocket_manager import manager
+    from app.utils.auth_utils import decode_access_token
+
+    if not token:
+        await websocket.close(code=4003)
+        return
+
+    payload = decode_access_token(token)
+    if not payload or "user" not in payload:
+        await websocket.close(code=4003)
+        return
+
+    await manager.connect("geolocation", websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect("geolocation", websocket)
+    except Exception as e:
+        logger.warning(f"WebSocket error on /ws/geolocation: {e}")
+        manager.disconnect("geolocation", websocket)
+
+
+@app.websocket("/ws/simulation")
+async def websocket_simulation(websocket: WebSocket, token: Optional[str] = Query(None)):
+    from app.utils.websocket_manager import manager
+    from app.utils.auth_utils import decode_access_token
+
+    if not token:
+        await websocket.close(code=4003)
+        return
+
+    payload = decode_access_token(token)
+    if not payload or "user" not in payload:
+        await websocket.close(code=4003)
+        return
+
+    await manager.connect("simulation", websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect("simulation", websocket)
+    except Exception as e:
+        logger.warning(f"WebSocket error on /ws/simulation: {e}")
+        manager.disconnect("simulation", websocket)

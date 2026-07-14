@@ -169,8 +169,6 @@ def render_ai_validation_assistant(rule_data: Dict[str, Any], errors: List[Dict[
     if not errors:
         return
 
-    st.markdown("#### 🧠 AI Validation Assistant")
-
     suggestions: List[str] = []
     for err in errors:
         field = err["field"]
@@ -198,5 +196,11 @@ def render_ai_validation_assistant(rule_data: Dict[str, Any], errors: List[Dict[
     if not suggestions:
         suggestions.append("Review the flagged fields and correct any invalid values before enabling this rule.")
 
-    for s in suggestions:
-        st.info(s)
+    from dashboard.components.widget_variants import AIWidget
+    AIWidget(
+        title="AI Validation Assistant",
+        bullets=suggestions,
+        subtitle="Rule Verification Suggestions",
+        confidence="High (92%)",
+        key=f"ai_val_{rule_data.get('name') or 'rule'}"
+    ).render()

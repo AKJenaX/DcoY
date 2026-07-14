@@ -107,7 +107,7 @@ def test_platform_end_to_end_integration():
 
         # ─── 4. RESPOND & SOAR (Start Workflow & Playbook Executions) ───
         workflow = db.query(DBWorkflow).filter(DBWorkflow.name == "Integration Containment Workflow").first()
-        if not rule:
+        if not workflow:
             workflow = DBWorkflow(
                 name="Integration Containment Workflow",
                 description="Auto-quarantine test workflow",
@@ -161,7 +161,7 @@ def test_platform_end_to_end_integration():
         db.delete(case)
         db.delete(wf_exec)
         db.delete(indicator)
-        if rule:
+        if rule is not None:
             db.delete(rule)
         db.commit()
 

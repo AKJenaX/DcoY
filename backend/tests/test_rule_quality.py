@@ -115,6 +115,7 @@ class TestRuleMetrics:
 
     def setup_method(self):
         self.metrics = RuleMetrics()
+        self.metrics.clear_metrics()
 
     def test_initial_metrics_are_zero(self):
         m = self.metrics.get_metrics(1)

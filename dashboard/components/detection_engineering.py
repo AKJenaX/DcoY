@@ -599,7 +599,13 @@ def render_detection_rules_page(
                         )
 
                 if st.session_state.ai_rule_helper_response:
-                    st.info(st.session_state.ai_rule_helper_response)
+                    from dashboard.components.widget_variants import render_ai_markdown_widget
+                    render_ai_markdown_widget(
+                        title="Copilot AI Rule Assistant",
+                        markdown_text=st.session_state.ai_rule_helper_response,
+                        default_subtitle="Detection Logic Optimization",
+                        key="ai_rule_helper_widget"
+                    )
                     if st.button("Dismiss AI Suggestion", key="dismiss_ai_helper_btn"):
                         st.session_state.ai_rule_helper_response = None
                         st.rerun()

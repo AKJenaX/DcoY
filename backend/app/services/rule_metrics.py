@@ -4,25 +4,38 @@ import time
 from typing import Any, Dict, List, Optional
 
 
+import threading
+from typing import Any, Dict, List, Optional
+
+
 class RuleMetrics:
     """Tracks per-rule execution metrics for health scoring and analytics."""
 
+    _shared_metrics: Dict[int, Dict[str, Any]] = {}
+    _lock = threading.Lock()
+
     def __init__(self) -> None:
-        self._metrics: Dict[int, Dict[str, Any]] = {}
+        pass
+
+    def clear_metrics(self) -> None:
+        """Clear all metrics from the shared backing store."""
+        with self._lock:
+            self._shared_metrics.clear()
 
     def _ensure_entry(self, rule_id: int) -> Dict[str, Any]:
-        if rule_id not in self._metrics:
-            self._metrics[rule_id] = {
-                "executions": 0,
-                "matches": 0,
-                "total_latency_ms": 0.0,
-                "failed_evaluations": 0,
-                "cache_hits": 0,
-                "cache_misses": 0,
-                "last_triggered": None,
-                "trigger_count": 0,
-            }
-        return self._metrics[rule_id]
+        with self._lock:
+            if rule_id not in self._shared_metrics:
+                self._shared_metrics[rule_id] = {
+                    "executions": 0,
+                    "matches": 0,
+                    "total_latency_ms": 0.0,
+                    "failed_evaluations": 0,
+                    "cache_hits": 0,
+                    "cache_misses": 0,
+                    "last_triggered": None,
+                    "trigger_count": 0,
+                }
+            return self._shared_metrics[rule_id]
 
     def record_execution(
         self,
@@ -83,7 +96,9 @@ class RuleMetrics:
 
     def get_all_metrics(self) -> List[Dict[str, Any]]:
         """Return computed metrics for all tracked rules."""
-        return [self.get_metrics(rid) for rid in self._metrics]
+        with self._lock:
+            rids = list(self._shared_metrics.keys())
+        return [self.get_metrics(rid) for rid in rids]
 
     def get_coverage_stats(self, rules: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Compute detection coverage analytics from a list of rule dicts."""

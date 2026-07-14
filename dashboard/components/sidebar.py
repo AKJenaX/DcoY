@@ -39,10 +39,10 @@ def render_sidebar(api_base: str):
                 unsafe_allow_html=True
             )
 
-        # Navigation Group 0: MARKETING
+        # Navigation Group 0: CORE PLATFORM
         st.markdown(
             f"""
-            <p style="font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.5rem; padding-left: 0.5rem;">NAVIGATION</p>
+            <p style="font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.5rem; padding-left: 0.5rem;">CORE SYSTEM</p>
             <a href="?page=marketing" target="_self" style="text-decoration:none; color:inherit;">
               <div class="sidebar-menu-item {"active" if current_page == "marketing" else ""}">
                 <svg class="soc-icon" viewBox="0 0 24 24"><path d="M3 11.5L12 4l9 7.5"/><path d="M5 10.5V20h14v-9.5"/></svg>
@@ -64,12 +64,6 @@ def render_sidebar(api_base: str):
         st.markdown(
             f"""
             <p style="font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.5rem; padding-left: 0.5rem;">MONITORING</p>
-            <a href="?page=overview" target="_self" style="text-decoration:none; color:inherit;">
-              <div class="sidebar-menu-item {"active" if current_page == "overview" else ""}">
-                <svg class="soc-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-                Dashboard Overview
-              </div>
-            </a>
             <a href="?page=threat_intel" target="_self" style="text-decoration:none; color:inherit;">
               <div class="sidebar-menu-item {"active" if current_page == "threat_intel" else ""}">
                 <svg class="soc-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>

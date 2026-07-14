@@ -35,7 +35,7 @@ class DBEvidence(Base):
     __tablename__ = "evidence"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    investigation_id: Mapped[str] = mapped_column(String, ForeignKey("investigations.id"), nullable=False)
+    investigation_id: Mapped[str] = mapped_column(String, ForeignKey("investigations.id"), nullable=False, index=True)
     event: Mapped[str] = mapped_column(String, nullable=False)
     timestamp: Mapped[str] = mapped_column(String, nullable=False)
     severity: Mapped[str] = mapped_column(String, default="Medium")
@@ -49,7 +49,7 @@ class DBAnalystNote(Base):
     __tablename__ = "analyst_notes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    investigation_id: Mapped[str] = mapped_column(String, ForeignKey("investigations.id"), nullable=False)
+    investigation_id: Mapped[str] = mapped_column(String, ForeignKey("investigations.id"), nullable=False, index=True)
     author: Mapped[str] = mapped_column(String, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -61,7 +61,7 @@ class DBCopilotLink(Base):
     __tablename__ = "copilot_links"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    investigation_id: Mapped[str] = mapped_column(String, ForeignKey("investigations.id"), nullable=False)
+    investigation_id: Mapped[str] = mapped_column(String, ForeignKey("investigations.id"), nullable=False, index=True)
     conversation_key: Mapped[str] = mapped_column(String, nullable=False)
 
     investigation: Mapped["DBInvestigation"] = relationship("DBInvestigation", back_populates="conversations")
@@ -71,7 +71,7 @@ class DBTimelineEvent(Base):
     __tablename__ = "timeline_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    investigation_id: Mapped[str] = mapped_column(String, ForeignKey("investigations.id"), nullable=False)
+    investigation_id: Mapped[str] = mapped_column(String, ForeignKey("investigations.id"), nullable=False, index=True)
     timestamp: Mapped[str] = mapped_column(String, nullable=False)
     event: Mapped[str] = mapped_column(String, nullable=False)
     details: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

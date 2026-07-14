@@ -7,21 +7,25 @@ from app.models.detection_rule import DBDetectionRule
 from app.services.rule_metrics import RuleMetrics
 
 
+from app.utils.cache import SimpleCache
+
+
 class RuleEngine:
     """Evaluates security rules against network telemetry caches with performance compiling caches."""
 
     def __init__(self) -> None:
         # Cache for parsed JSON rule criteria
-        self._compiled_cache: Dict[int, Dict[str, Any]] = {}
-        self._eval_cache: Dict[str, bool] = {}
+        self._compiled_cache = SimpleCache(max_size=500)
+        self._eval_cache = SimpleCache(max_size=1000)
         self.metrics = RuleMetrics()
 
     def compile_rule(self, rule: DBDetectionRule) -> Dict[str, Any]:
         """Parses and caches the JSON criteria for the specified rule."""
         rule_any: Any = rule
         r_id = int(rule_any.id)
-        if r_id in self._compiled_cache:
-            return self._compiled_cache[r_id]
+        cached = self._compiled_cache.get(str(r_id))
+        if cached is not None:
+            return cached
         
         try:
             criteria = json.loads(str(rule_any.detection_logic))
@@ -29,17 +33,17 @@ class RuleEngine:
             # Fallback to key-value or empty if invalid
             criteria = {}
             
-        self._compiled_cache[r_id] = criteria
+        self._compiled_cache.set(str(r_id), criteria)
         return criteria
 
     def clear_cache(self, rule_id: int) -> None:
         """Purge cached compilation for rule modification updates."""
-        if rule_id in self._compiled_cache:
-            del self._compiled_cache[rule_id]
-        # Purge related eval caches
-        keys_to_del = [k for k in self._eval_cache.keys() if k.startswith(f"{rule_id}_")]
-        for k in keys_to_del:
-            del self._eval_cache[k]
+        self._compiled_cache.delete(str(rule_id))
+        # Purge related eval caches under lock
+        with self._eval_cache._lock:
+            keys_to_del = [k for k in self._eval_cache._store if k.startswith(f"{rule_id}_")]
+            for k in keys_to_del:
+                del self._eval_cache._store[k]
 
     def evaluate_event(self, rule: DBDetectionRule, event: Dict[str, Any]) -> bool:
         """Evaluates a single telemetry event against the rule logic."""
@@ -51,32 +55,33 @@ class RuleEngine:
         event_key = f"{event.get('ip')}_{event.get('timestamp') or event.get('time')}_{event.get('failed_logins')}_{event.get('port_attempts')}_{event.get('request_rate')}_{event.get('event_type')}"
         cache_key = f"{r_id}_{r_ver}_{event_key}"
         
-        if cache_key in self._eval_cache:
-            return self._eval_cache[cache_key]
+        cached_eval = self._eval_cache.get(cache_key)
+        if cached_eval is not None:
+            return cached_eval
             
         criteria = self.compile_rule(rule)
         if not criteria:
-            self._eval_cache[cache_key] = False
+            self._eval_cache.set(cache_key, False)
             return False
 
         # Match criteria fields
         for key, expected_val in criteria.items():
             if key not in event:
-                self._eval_cache[cache_key] = False
+                self._eval_cache.set(cache_key, False)
                 return False
                 
             actual_val = event[key]
             # Case-insensitive checks for string values
             if isinstance(expected_val, str) and isinstance(actual_val, str):
                 if expected_val.lower() != actual_val.lower():
-                    self._eval_cache[cache_key] = False
+                    self._eval_cache.set(cache_key, False)
                     return False
             else:
                 if expected_val != actual_val:
-                    self._eval_cache[cache_key] = False
+                    self._eval_cache.set(cache_key, False)
                     return False
                     
-        self._eval_cache[cache_key] = True
+        self._eval_cache.set(cache_key, True)
         return True
 
     def test_rule(
@@ -91,7 +96,7 @@ class RuleEngine:
         """
         rule_any: Any = rule
         r_id = int(rule_any.id)
-        cache_hit = r_id in self._compiled_cache
+        cache_hit = self._compiled_cache.get(str(r_id)) is not None
 
         start_time = time.perf_counter()
         failed = False
@@ -140,7 +145,7 @@ class RuleEngine:
             "wall_time_ms": round((end - start) * 1000, 2),
             "detection_coverage": round(coverage, 4),
             "estimated_production_impact": "Low" if len(matched) < 5 else ("Medium" if len(matched) < 20 else "High"),
-            "cache_state": "hit" if r_id in self._compiled_cache else "miss",
+            "cache_state": "hit" if self._compiled_cache.get(str(r_id)) is not None else "miss",
         }
 
     def correlate_rule_with_indicators(self, db: Any, rule_id: int, indicators: List[Dict[str, Any]]) -> None:
