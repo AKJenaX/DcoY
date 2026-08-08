@@ -1,373 +1,207 @@
-# DcoY
+# DcoY Threat Defense Platform
 
 <p align="center">
-  <strong>Enterprise AI Security Operations, Threat Detection, and Active Deception</strong>
+  <strong>Enterprise Active Defense, Machine Learning Anomaly Detection & Deception Console</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/AKJenaX/DcoY/releases"><img src="https://img.shields.io/badge/version-v0.1.0--alpha-orange.svg" alt="Release Version"/></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"/></a>
-  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python compatibility"/></a>
-  <a href="https://github.com/AKJenaX/DcoY/actions/workflows/ci.yml"><img src="https://github.com/AKJenaX/DcoY/actions/workflows/ci.yml/badge.svg" alt="CI status"/></a>
-  <a href="https://github.com/AKJenaX/DcoY"><img src="https://img.shields.io/github/stars/AKJenaX/DcoY.svg?style=social" alt="Stars Badge"/></a>
+  <a href="https://github.com/AKJenaX/DcoY/releases"><img src="https://img.shields.io/badge/version-v1.0.0-cyan.svg?style=flat-square" alt="Version"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License"/></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB.svg?style=flat-square&logo=python&logoColor=white" alt="Python"/></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-18.0+-61DAFB.svg?style=flat-square&logo=react&logoColor=black" alt="React"/></a>
+  <a href="https://github.com/AKJenaX/DcoY/actions"><img src="https://img.shields.io/badge/CI-Passing-00ff66.svg?style=flat-square" alt="CI Status"/></a>
+  <a href="backend/tests"><img src="https://img.shields.io/badge/Tests-101%20Passed-brightgreen.svg?style=flat-square" alt="Tests"/></a>
 </p>
 
 ---
 
 ## Overview
 
-**DcoY** is an AI-assisted cyber defense platform for real-time threat detection, deception response, SOC investigation workflows, and executive security intelligence.
+**DcoY** is an open-source active defense and cyber deception platform designed to detect, misdirect, and investigate unauthorized network ingress in real-time.
 
-The platform combines:
+Unlike passive SIEM alert aggregators, DcoY dynamically deploys virtual honeypot listeners, scores incoming network telemetry using machine learning anomaly models, and misdirects attackers into synthetic honeynets while capturing full forensics.
 
-- Machine-learning anomaly detection with Isolation Forest.
-- Active deception and honeypot response orchestration.
-- Local Copilot-style reasoning through Ollama/Llama 3 with circuit-breaker fallbacks.
-- React-based SOC workspaces for analysts and security operators.
-- DB-backed investigation and detection-rule management.
-- Executive Intelligence dashboards for SOC managers and CISOs.
-- A standalone React/TypeScript enterprise design system for future frontend work.
-
-DcoY is built to feel like practical enterprise security software: calm, technical, auditable, and fast.
+The platform provides a modern **SOC Command Center** built with React, TypeScript, and FastAPI, featuring real-time WebSockets, automated incident management, rule engineering, and executive security intelligence.
 
 ---
 
-## Core Capabilities
+## Console Workspace
 
-- **ML Anomaly Detection**: Scores network telemetry and identifies suspicious outliers.
-- **Active Deception Engine**: Selects honeypot responses and isolation strategies based on attacker behavior.
-- **AI Copilot Intel**: Answers questions, explains detections, maps activity to security context, and supports investigation summaries.
-- **Threat Intelligence Center**: Tracks indicators, risk scores, MITRE mappings, response actions, and intelligence feeds.
-- **Live Geolocation**: Visualizes source locations for observed suspicious activity.
-- **Investigations Workspace**: Provides DB-backed case management, evidence linking, notes, timeline history, and exports.
-- **Threat Hunting Workbench**: Supports proactive query building and telemetry filtering.
-- **Detection Engineering**: Manages detection rules, validation, revisions, testing, benchmarking, and rule health.
-- **Executive Intelligence**: Provides SOC operational KPIs, MITRE coverage, threat trends, SOC performance, AI insights, and executive report exports.
-- **PDF, Markdown, and JSON Reporting**: Exports operational and executive security reports.
-- **Telemetry Simulator**: Generates synthetic traffic for testing ingestion and detection flows.
+<p align="center">
+  <img src="docs/assets/command_overview.png" alt="SOC Command Center Overview" width="90%" />
+  <br/>
+  <em>Figure 1: DcoY Command Overview Workspace displaying real-time telemetry, threat radar, and MITRE ATT&CK coverage.</em>
+</p>
 
 ---
 
-## Executive Intelligence
+## Key Features
 
-The Executive Intelligence workspace is available at:
+* **Machine Learning Anomaly Detection**: Scores network telemetry in real-time using Isolation Forest models to detect zero-day reconnaissance and credential attacks.
+* **Active Deception Engine**: Dynamically routes high-risk IP traffic into virtual honeynet traps (SSH, HTTP, Database traps) to record attacker behavior.
+* **Real-time Event Ingestion & WebSockets**: Low-latency event streaming via `/ws/telemetry` channels with automatic HTTP polling fallback.
+* **DB-Backed Incident Workspace**: Case ledger tracking incidents, notes, timeline event correlation, and forensic export.
+* **Observability & Distributed Tracing**: Native request correlation tracking (`X-Request-ID`), structured JSON logging, classified exceptions, liveness/readiness probes (`/health/live`, `/health/ready`), and Prometheus-compatible metrics (`/metrics`).
+* **Production Security & Auth Persistence**: Hashed database user storage using bcrypt, SHA-256 API key hashing, constant-time `hmac.compare_digest` verification, and JWT session handling.
+
+---
+
+## Architecture Overview
 
 ```text
-http://localhost:5173/
-```
-
-It includes:
-
-- Open investigations.
-- Critical alerts over the current 24-hour operating window.
-- Detection coverage.
-- Mean time to investigate and resolve.
-- AI confidence averages.
-- Security posture overview.
-- Interactive MITRE ATT&CK coverage.
-- Daily and weekly threat trends.
-- Top attack vectors, affected countries, affected assets, and severity distribution.
-- SOC performance metrics.
-- Copilot-backed executive summaries with deterministic fallback.
-- Executive report downloads as PDF, Markdown, and JSON.
-
-Backend aggregate endpoint:
-
-```text
-GET /api/executive/metrics
-```
-
----
-
-## Enterprise Design System
-
-DcoY now includes a standalone design-system foundation for future React-based frontend work:
-
-```text
-design-system/
-```
-
-The design system uses:
-
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui-compatible configuration
-- Framer Motion
-- Lucide React
-- Tabler icon compatibility
-
-It provides reusable foundations for:
-
-- Semantic design tokens.
-- Enterprise dark theme architecture.
-- Typography, spacing, radius, shadow, glow, and elevation systems.
-- Layout primitives.
-- Background layers.
-- Motion presets.
-- Accessible component primitives.
-- SOC-specific cards, widgets, timelines, command palette, and chart wrappers.
-- Data visualization styles for line, area, bar, donut, radar, heatmap, timeline, network graph, MITRE matrix, and threat map.
-
-Design-system entry points:
-
-```ts
-import "@dcoy/design-system/theme";
-import { Button, Card, DashboardLayout } from "@dcoy/design-system";
-```
-
-Migration guidance:
-
-- [Design System Migration Strategy](design-system/docs/migration-strategy.md)
-- [Component Contracts](design-system/docs/component-contracts.md)
-
----
-
-## Architecture
-
-```text
-DcoY/
-  backend/
-    app/
-      agents/              Multi-agent detection, deception, response, and reasoning
-      detection/           ML anomaly detection pipeline
-      deception/           Honeypot and deception response logic
-      models/              Pydantic and SQLAlchemy models
-      services/            Rule quality, executive metrics, and rule services
-      utils/               Auth, repository, reporting, geolocation, stores
-      main.py              FastAPI application entry point
-    tests/                 Backend test suite
-  frontend/
-    src/
-      views/               React dashboard page views
-      hooks/               useRealtimeChannel and state hook layers
-      services/            REST api client services
-  design-system/
-    src/
-      tokens/              Semantic design tokens
-      theme/               CSS variable theme and Tailwind layers
-      components/          React UI primitives and SOC components
-      layouts/             Dashboard and content layout primitives
-      animations/          Framer Motion presets
-      backgrounds/         Subtle enterprise background layers
-      data-viz/            Shared chart and security visualization wrappers
-      hooks/               Interaction and accessibility hooks
-      providers/           Design system provider
-  docs/                    Architecture, development, security, and setup docs
-  scripts/                 Diagnostics and verification utilities
-  simulator.py             Synthetic telemetry simulator
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                    React + TypeScript SOC Console                      │
+  │     (Command Overview, Hive Map, Deception Grid, Incident Ledger)      │
+  └───────────────────────────────────┬────────────────────────────────────┘
+                                      │ REST API / WebSockets
+  ┌───────────────────────────────────▼────────────────────────────────────┐
+  │                        FastAPI API Gateway                             │
+  │   [CorrelationID] ──> [CORS] ──> [JWT & API-Key Auth] ──> [JSON Logger]  │
+  └───────┬───────────────────────────┬───────────────────────────┬────────┘
+          │                           │                           │
+  ┌───────▼───────────┐       ┌───────▼───────────┐       ┌───────▼───────────┐
+  │  Anomaly Agent    │       │  Deception Agent  │       │ Reasoning Agent   │
+  │ Isolation Forest  │       │ Honeynet Listener │       │ AI Assistant /    │
+  │ ML Pipeline       │       │ Strategy Engine   │       │ Incident Summaries│
+  └───────┬───────────┘       └───────┬───────────┘       └───────┬───────────┘
+          │                           │                           │
+  ┌───────▼───────────────────────────▼───────────────────────────▼────────┐
+  │                    SQLAlchemy ORM Data Store                           │
+  │       (DBUser, DBApiKey, DBInvestigation, DBTimelineEvent)           │
+  └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Tech Stack
+## Technology Stack
 
-### Backend
-
-- FastAPI
-- Pydantic V2
-- SQLAlchemy
-- Scikit-learn
-- Pandas
-- NumPy
-- Python-Jose
-- Passlib
-- ReportLab
-- Ollama/Llama 3 integration
-
-### Frontend Dashboard
-
-- **React & TypeScript** with a fast Vite build toolchain.
-- **Cybernetic Hive Defense Theme**: Deep dark styling utilizing custom CSS variables, GlassPanel overlay primitives, and HexField layouts.
-- **Organic Winding Curves**: Uses dynamic EnergyRibbon components to visually represent system pathways and live connection topologies.
-- **Faceted Side Navigation**: High-contrast honeycomb-inspired navigation with integrated status indicators.
-- **Interactive Data Visualizations**: Custom SVG charting, responsive live threat maps, and dynamic MITRE ATT&CK coverage grids.
-
-### Design System
-
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui-compatible config
-- Radix UI primitives
-- Framer Motion
-- Lucide React
-- Tabler icon compatibility
+| Domain | Technologies |
+| :--- | :--- |
+| **Backend Framework** | Python 3.11+, FastAPI, Uvicorn, Starlette |
+| **Machine Learning** | Scikit-learn (Isolation Forest), Pandas, NumPy |
+| **Database & Persistence** | SQLAlchemy ORM, Alembic Migrations, SQLite / PostgreSQL |
+| **Security & Auth** | PyJWT, bcrypt, SHA-256 Key Hashing, HMAC constant-time validation |
+| **Frontend UI** | React 18, TypeScript 5, Vite, Tailwind CSS, Lucide Icons |
+| **Testing & Quality** | Pytest (101 unit tests), Pyright (0 errors), ESLint, Vite Build |
+| **Deployment & Ops** | Docker, Docker Compose, Multi-stage Nginx Reverse Proxy |
 
 ---
 
 ## Quick Start
 
-### 1. Clone and configure
+### Prerequisites
+* Python 3.11+
+* Node.js 18+ & npm
 
-```bash
-git clone https://github.com/AKJenaX/DcoY.git
-cd DcoY
-cp .env.example .env
-```
-
-For local development, set:
-
-```env
-DEBUG=True
-SECRET_KEY=replace_with_a_32_character_minimum_secret
-```
-
-### 2. Start the FastAPI backend
-
+### 1. Launch Backend API
 ```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate
+# Windows: .\.venv\Scripts\Activate.ps1 | Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8001
 ```
 
-Windows PowerShell activation:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Backend API:
-
-```text
-http://127.0.0.1:8000
-```
-
-Interactive API docs:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-### 3. Start the React dashboard
-
-In a new terminal:
-
+### 2. Launch React SOC Console
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+Open **[http://localhost:5173](http://localhost:5173)** in your browser.  
+* **Default Operator Credentials**: `operator` / `secure_password`
 
-Dashboard (runs on Port 5173 by default):
+---
+
+## Project Structure
 
 ```text
-http://localhost:5173
-```
-
-### 4. Run the telemetry simulator
-
-From the repository root:
-
-```bash
-python simulator.py
-```
-
----
-
-## Docker
-
-Run the backend and dashboard together:
-
-```bash
-docker-compose up --build
-```
-
-Services:
-
-- Backend API: `http://localhost:8000`
-- React Dashboard: `http://localhost:5173`
-
----
-
-## Configuration
-
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `APP_NAME` | Platform display name | `DcoY` |
-| `DEBUG` | Enables development mode | `True` in local development |
-| `SECRET_KEY` | JWT signing key, minimum 32 characters in production | Required in production |
-| `LLM_ENABLED` | Enables Ollama-backed reasoning | `True` |
-| `LLM_HOST` | Ollama host URL | `http://127.0.0.1:11434` |
-| `LLM_MODEL` | Ollama model name | `llama3` |
-| `LLM_TIMEOUT` | LLM request timeout in seconds | `2.0` |
-| `LLM_HEALTH_CHECK_INTERVAL` | Cached health-check window | `60.0` |
-| `LLM_RETRY_INTERVAL` | Circuit-breaker retry interval | `30.0` |
-| `LLM_FAILURE_THRESHOLD` | Failures before opening circuit | `3` |
-
----
-
-## Testing
-
-Install development dependencies:
-
-```bash
-pip install -r requirements-dev.txt
-```
-
-Run backend tests:
-
-```bash
-set DEBUG=True
-set SECRET_KEY=0123456789abcdef0123456789abcdef
-python -m pytest backend/tests -q
-```
-
-PowerShell:
-
-```powershell
-$env:DEBUG='True'
-$env:SECRET_KEY='0123456789abcdef0123456789abcdef'
-python -m pytest backend\tests -q
-```
-
-Run focused rule-quality tests:
-
-```bash
-python -m pytest backend/tests/test_rule_quality.py -q
+DcoY/
+├── backend/
+│   ├── alembic/                # Database migration scripts
+│   ├── app/
+│   │   ├── agents/             # Detection, deception, and response agents
+│   │   ├── dependencies/       # FastAPI authentication & RBAC dependencies
+│   │   ├── middleware/         # Correlation ID, CORS, and logging middleware
+│   │   ├── models/             # Pydantic V2 schemas & SQLAlchemy ORM models
+│   │   ├── repositories/       # ORM repository data access layer
+│   │   ├── routers/            # 10 domain REST API router modules
+│   │   ├── services/           # Simulation & rule engines
+│   │   └── main.py             # FastAPI entry point & lifespan manager
+│   └── tests/                  # Pytest test suite (101 tests)
+├── frontend/
+│   ├── src/
+│   │   ├── components/         # Reusable React UI widgets
+│   │   ├── hooks/              # useRealtimeChannel & state hooks
+│   │   ├── services/           # REST API client
+│   │   └── views/              # 10 SOC Command Center views
+│   ├── Dockerfile              # Multi-stage production Nginx container
+│   └── nginx.conf              # Nginx reverse proxy configuration
+├── docs/                       # Technical architecture documentation
+├── scripts/                    # Verification & setup diagnostic tools
+└── docker-compose.yml          # Production multi-container orchestrator
 ```
 
 ---
 
-## Documentation
+## Documentation & API References
 
-- [Quick Start](docs/quick-start.md)
-- [API](docs/api.md)
-- [Architecture](docs/architecture.md)
-- [System Design](docs/system-design.md)
-- [Security](docs/security.md)
-- [Development](docs/development.md)
-- [Deployment](docs/deployment.md)
-- [Agents](docs/agents.md)
-- [Real-Time Setup](docs/real-time-setup.md)
-- [Test Commands](docs/test-commands.md)
+Detailed architecture specs, API endpoints, and guides are available in [`docs/`](docs/):
+
+* 🚀 **[Quick Start Guide](docs/quick-start.md)** — Step-by-step setup and verification.
+* 🏗️ **[System Architecture](docs/architecture.md)** — Monorepo design, multi-agent pipeline, and data flow.
+* 📡 **[API Reference](docs/api.md)** — Complete OpenAPI specification and endpoints.
+* 🛡️ **[Security Architecture](docs/security.md)** — Authentication, API keys, and RBAC control flows.
+* 🚢 **[Deployment Manual](deployment.md)** — Production readiness, Docker, Nginx, and rollback procedures.
 
 ---
 
-## Release Milestones & Roadmap
+## Testing & Quality Assurance
 
-- **v0.1.0-alpha**: Real-time telemetry, ML anomaly detection, active deception, React SOC workspaces, detection engineering, and executive dashboards.
-- **v1.0.0-rc1 (Current)**:
-  - **Security Knowledge Graph**: Directional entity relationships with caching and degree centrality analytics.
-  - **Attack Path Engine**: Dijkstra-based shortest-path traversal mapping threat movements alongside matching defensive controls.
-  - **Platform Diagnostics & Health**: Dynamic FastAPI route inventories, latency profiling, and health statuses.
-  - **Structured Observability**: Structured JSON logging, OpenAPI schema metadata, and request latency logging middleware.
-  - **Alembic Database Migrations**: Relational schema versioning for SQLite.
-  - **Hardened Deployment**: Docker multi-stage builds running as non-privileged users.
-  - **Interactive Demo Orchestration**: One-click synthetic attack scenario generation and observer consoles.
+Run the automated test suite and type diagnostics:
+
+```bash
+# Execute 101 backend unit & integration tests
+cd backend
+python -m pytest
+
+# Run Pyright static type checker (0 errors)
+npx pyright app
+
+# Verify frontend production build
+cd ../frontend
+npm run build
+```
+
+---
+
+## Deployment
+
+To deploy DcoY in a production environment using Docker Compose:
+
+```bash
+cp production.env.example .env
+docker-compose up -d --build
+```
+This builds the multi-stage Nginx frontend container and FastAPI backend service with health probes enabled.
+
+---
+
+## Roadmap
+
+* [ ] **Redis Pub/Sub Layer**: Scaling WebSocket streaming horizontally across multi-pod backend deployments.
+* [ ] **PostgreSQL Production Target**: Official Helm chart for Kubernetes deployment with connection pooling.
+* [ ] **eBPF Kernel Agent**: Low-overhead Linux kernel probe for network socket interception.
+* [ ] **SIEM Export Pipeline**: Automated Syslog / CEF exporter for Splunk and Microsoft Sentinel integration.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
-
-For security issues, follow [SECURITY.md](SECURITY.md).
+Contributions are welcome! Please review our **[Contributing Guide](CONTRIBUTING.md)** and **[Code of Conduct](CODE_OF_CONDUCT.md)** before submitting a pull request.
 
 ---
 
 ## License
 
-DcoY is licensed under the terms of the [MIT License](LICENSE).
+This project is licensed under the **[MIT License](LICENSE)**.
