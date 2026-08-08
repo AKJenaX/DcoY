@@ -1,62 +1,49 @@
 #!/usr/bin/env python3
 """
-Quick verification script for DcoY backend-frontend connection.
-Run this from the project root directory to verify everything is configured correctly.
+Verification Script for DcoY Platform Setup
+Tests backend API endpoints and frontend project structure readiness.
 """
 
 import sys
-if sys.platform == "win32":
-    try:
-        getattr(sys.stdout, "reconfigure")(encoding="utf-8")
-    except Exception:
-        pass
-import requests
-import subprocess
 from pathlib import Path
+import requests
 
-# Configuration
-API_BASE = "http://127.0.0.1:8000"
-BACKEND_TIMEOUT = 5
+API_BASE = "http://127.0.0.1:8001"
 
-def print_header(text):
-    """Print a formatted header."""
-    print(f"\n{'='*60}")
-    print(f"  {text}")
-    print(f"{'='*60}\n")
+def print_header(title: str):
+    """Print formatted header."""
+    print("=" * 60)
+    print(f" {title}")
+    print("=" * 60)
 
-def print_status(status, message):
-    """Print a status message with emoji."""
-    emoji = "✓" if status else "✗"
-    print(f"  {emoji} {message}")
+def print_status(ok: bool, message: str):
+    """Print status item with checkbox icon."""
+    icon = "✅" if ok else "❌"
+    print(f"{icon}  {message}")
 
 def check_backend_running():
-    """Check if FastAPI backend is running."""
+    """Check if FastAPI backend is running on API_BASE."""
     try:
-        response = requests.get(f"{API_BASE}/health", timeout=BACKEND_TIMEOUT)
-        response.raise_for_status()
-        data = response.json()
-        return True, data
+        response = requests.get(f"{API_BASE}/health/live", timeout=3)
+        if response.status_code == 200:
+            return True, response.json()
+        return False, f"Status code: {response.status_code}"
     except requests.exceptions.ConnectionError:
-        return False, "Connection refused - backend may not be running on port 8000"
-    except requests.exceptions.Timeout:
-        return False, "Request timeout - backend is not responding"
-    except requests.exceptions.RequestException as e:
-        return False, f"Connection error: {str(e)}"
+        return False, f"Could not connect to {API_BASE}"
     except Exception as e:
-        return False, f"Unexpected error: {str(e)}"
+        return False, str(e)
 
 def check_backend_endpoints():
-    """Check if all required endpoints are available."""
-    endpoints = [
-        ("/", "Root endpoint"),
-        ("/health", "Health check"),
-        ("/detect", "Anomaly detection"),
-        ("/agents", "Agent pipeline"),
-        ("/explain", "AI explanations"),
-    ]
+    """Check all critical backend API endpoints."""
+    endpoints = {
+        "/health/live": "Liveness Probe",
+        "/health/ready": "Readiness Probe",
+        "/metrics": "Application Telemetry",
+        "/docs": "OpenAPI Swagger UI Documentation",
+    }
     
     results = {}
-    for endpoint, description in endpoints:
+    for endpoint, description in endpoints.items():
         try:
             response = requests.get(f"{API_BASE}{endpoint}", timeout=5)
             results[endpoint] = (response.status_code == 200, description, response.status_code)
@@ -65,29 +52,22 @@ def check_backend_endpoints():
     
     return results
 
-def check_streamlit_config():
-    """Check if Streamlit dashboard is configured correctly."""
-    dashboard_path = Path("dashboard/app.py")
-    constants_path = Path("dashboard/utils/constants.py")
+def check_frontend_config():
+    """Check if React frontend is configured correctly."""
+    frontend_app = Path("frontend/src/App.tsx")
+    frontend_api = Path("frontend/src/services/api.ts")
     
-    if not dashboard_path.exists():
-        return False, "dashboard/app.py not found"
+    if not (frontend_app.exists() and frontend_api.exists()):
+        return False, "frontend workspace components not found"
     
     try:
-        if constants_path.exists():
-            with open(constants_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                if "BACKEND_URLS" in content and "http://127.0.0.1:8000" in content:
-                    return True, "BACKEND_URLS configured correctly in constants.py"
-                    
-        with open(dashboard_path, 'r', encoding='utf-8') as f:
+        with open(frontend_api, 'r', encoding='utf-8') as f:
             content = f.read()
-            if ("API_BASE" in content and "http://127.0.0.1:8000" in content) or "find_working_backend" in content:
-                return True, "API_BASE configured correctly"
-            else:
-                return False, "API_BASE not properly configured"
+            if "API_BASE" in content and ("8001" in content or "8000" in content):
+                return True, "API_BASE configured correctly in frontend/src/services/api.ts"
+            return False, "API_BASE missing or invalid in frontend/src/services/api.ts"
     except Exception as e:
-        return False, f"Error reading config: {str(e)}"
+        return False, f"Error reading frontend config: {str(e)}"
 
 def check_backend_config():
     """Check if FastAPI backend is configured correctly."""
@@ -99,20 +79,17 @@ def check_backend_config():
     try:
         with open(backend_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            has_cors = "CORSMiddleware" in content
-            has_health = 'def health_check' in content
-            has_logging = "import logging" in content
+            has_cors = "setup_cors_middleware" in content or "CORSMiddleware" in content
+            has_routers = "include_router" in content
+            has_lifespan = "lifespan" in content
             
-            if has_cors and has_health and has_logging:
-                return True, "Backend properly configured with CORS, health check, and logging"
+            if has_cors and has_routers and has_lifespan:
+                return True, "Backend properly configured with modular routers, CORS, and lifespan lifecycle"
             else:
                 missing = []
-                if not has_cors:
-                    missing.append("CORS")
-                if not has_health:
-                    missing.append("health endpoint")
-                if not has_logging:
-                    missing.append("logging")
+                if not has_cors: missing.append("CORS")
+                if not has_routers: missing.append("Routers")
+                if not has_lifespan: missing.append("Lifespan")
                 return False, f"Backend missing: {', '.join(missing)}"
     except Exception as e:
         return False, f"Error reading file: {str(e)}"
@@ -124,11 +101,11 @@ def main():
     # Check file structure
     print("1. Checking Project Structure...")
     backend_exists = Path("backend/app/main.py").exists()
-    dashboard_exists = Path("dashboard/app.py").exists()
+    frontend_exists = Path("frontend/src/App.tsx").exists()
     print_status(backend_exists, "Backend found at backend/app/main.py")
-    print_status(dashboard_exists, "Dashboard found at dashboard/app.py")
+    print_status(frontend_exists, "Frontend found at frontend/src/App.tsx")
     
-    if not (backend_exists and dashboard_exists):
+    if not (backend_exists and frontend_exists):
         print("\n❌ Project structure incomplete. Please run from project root directory.")
         return 1
     
@@ -137,8 +114,8 @@ def main():
     backend_ok, backend_msg = check_backend_config()
     print_status(backend_ok, f"Backend config: {backend_msg}")
     
-    streamlit_ok, streamlit_msg = check_streamlit_config()
-    print_status(streamlit_ok, f"Streamlit config: {streamlit_msg}")
+    frontend_ok, frontend_msg = check_frontend_config()
+    print_status(frontend_ok, f"Frontend config: {frontend_msg}")
     
     # Check backend connectivity
     print("\n3. Checking Backend Connectivity...")
@@ -159,7 +136,7 @@ def main():
         print_status(False, f"Backend not running: {backend_data}")
         print("\n⚠️  NEXT STEPS:")
         print("  1. Open terminal in 'backend' directory")
-        print("  2. Run: uvicorn app.main:app --reload")
+        print("  2. Run: .\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --port 8001")
         print("  3. Then run this verification script again")
         return 1
     
@@ -167,10 +144,10 @@ def main():
     print_header("✅ Verification Complete")
     print("  All systems ready! You can now:")
     print("  1. Start backend (if not already running):")
-    print("     cd backend && uvicorn app.main:app --reload")
-    print("  2. Start dashboard in another terminal:")
-    print("     cd dashboard && streamlit run app.py")
-    print("  3. Open browser at http://localhost:8501")
+    print("     cd backend && .\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --port 8001")
+    print("  2. Start frontend in another terminal:")
+    print("     cd frontend && npm run dev")
+    print("  3. Open browser at http://localhost:5173")
     print()
     
     return 0
@@ -179,8 +156,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        print("\n\nVerification cancelled by user.")
-        sys.exit(130)
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {str(e)}")
+        print("\nVerification cancelled.")
         sys.exit(1)

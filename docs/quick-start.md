@@ -1,112 +1,100 @@
-# Quick Start Guide - DcoY System
+# Quick Start Guide - DcoY Enterprise Threat Defense Platform
 
 ## Prerequisites
 
-- Python 3.8+
-- FastAPI and Streamlit installed
+- Python 3.11+
+- Node.js 18+ & npm
+
+---
 
 ## Running the System
 
-### Option 1: Quick Start (Recommended)
+### Option 1: Development Environment (Recommended)
 
-**Terminal 1 - Start Backend:**
+**Terminal 1 — Start Backend:**
 ```bash
 cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8001
 ```
 
 You should see:
 ```
-INFO:     Uvicorn running on http://0.0.0.0:8000 [Press CTRL+C to quit]
-INFO:app.main:Starting DcoY API
-INFO:app.main:CORS middleware configured to accept all origins
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:app.main:Starting DcoY API with Structured Observability & Correlation Tracking
+INFO:app.main:CORS, Request Correlation, and Exception Middleware configured successfully
 ```
 
-**Terminal 2 - Start Dashboard:**
+**Terminal 2 — Start React Frontend Dashboard:**
 ```bash
-cd dashboard
-pip install -r requirements.txt
-streamlit run app.py
+cd frontend
+npm install
+npm run dev
 ```
 
 You should see:
 ```
-  You can now view your Streamlit app in your browser.
-  URL: http://localhost:8501
-```
+  VITE v5.4.21 ready in 240 ms
 
-### Option 2: Docker Compose
-
-```bash
-docker-compose up --build
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
 ```
 
 ---
 
-## Verifying Connection
+### Option 2: Production Containerization (Docker Compose)
 
-### Method 1: Automatic Verification
 ```bash
-# From project root
+cp production.env.example .env
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+---
+
+## Verifying Connection & Health
+
+### Method 1: Automatic Verification Script
+```bash
+# From project root directory
 python scripts/verify_setup.py
 ```
 
 ### Method 2: Manual Testing
 
-1. **Test Backend Health:**
+1. **Test Backend Liveness Probe:**
    ```bash
-   curl http://127.0.0.1:8000/health
+   curl http://127.0.0.1:8001/health/live
    ```
-   Expected: `{"status": "ok", "service": "DcoY AI Defense"}`
+   Expected: `{"status":"live","timestamp":"..."}`
 
-2. **Test Detection:**
+2. **Test Backend Readiness Probe:**
    ```bash
-   curl http://127.0.0.1:8000/detect
+   curl http://127.0.0.1:8001/health/ready
    ```
-   Expected: JSON with detection results
+   Expected: `{"status":"ready","database":"connected","services":{"rule_engine":"active",...}}`
 
-3. **View Dashboard:**
-   Open http://localhost:8501 in browser
-
----
-
-## ✅ Success Indicators
-
-- [ ] Backend starts without errors
-- [ ] Dashboard loads without "Backend not running"
-- [ ] Detection data displays in Overview section
-- [ ] Attack Distribution chart shows data
-- [ ] Can ask DcoY questions
-- [ ] AI Explanations load properly
+3. **Open Operator Console:**
+   Open [http://localhost:5173](http://localhost:5173) in your web browser.
+   - **Operator Login:** `operator` / `secure_password`
+   - **Admin Login:** `adm_local` / `secure_password`
 
 ---
 
-## ❌ Common Issues & Fixes
+## Success Indicators Checklist
 
-### "Connection refused on port 8000"
-- Backend not running → Start it with `uvicorn` command above
-- Port in use → Kill process or use different port: `--port 8001`
-
-### "Timeout waiting for backend"
-- Backend too slow → Check logs for errors
-- Network issue → Verify firewall allows port 8000
-
-### "Backend not running" in dashboard
-- CORS issue → Check backend has CORS middleware
-- URL mismatch → Verify API_BASE in dashboard/app.py matches backend URL
+- [x] Backend starts cleanly on port 8001 without errors.
+- [x] React frontend loads SOC Command Center without connection errors.
+- [x] Live telemetry events stream in real-time.
+- [x] MITRE ATT&CK Matrix updates dynamically.
+- [x] Interactive Attack Path Topology Graph (`Hive Map`) renders Dijkstra nodes.
+- [x] Incident cases and evidence logs register in SQLite database.
 
 ---
 
-## Key Files
-- `dashboard/app.py` - Enhanced error handling and logging
-- `backend/app/main.py` - Added logging and improved health check
+## Key Project Locations
 
----
-
-## Troubleshooting
-
-1. **Check backend logs** - Look for errors in the backend terminal.
-2. **Run scripts/verify_setup.py** - Comprehensive system check.
-3. **Check port conflicts** - Ensure 8000 and 8501 are free.
-4. **Test endpoints directly** - Use curl commands above.
+- **Backend API Entrypoint:** [`backend/app/main.py`](file:///c:/Users/Anup%20Kumar/Desktop/projects/dcoy/backend/app/main.py)
+- **Frontend App Entrypoint:** [`frontend/src/App.tsx`](file:///c:/Users/Anup%20Kumar/Desktop/projects/dcoy/frontend/src/App.tsx)
+- **API Client Service:** [`frontend/src/services/api.ts`](file:///c:/Users/Anup%20Kumar/Desktop/projects/dcoy/frontend/src/services/api.ts)
+- **Production Environment Config:** [`production.env.example`](file:///c:/Users/Anup%20Kumar/Desktop/projects/dcoy/production.env.example)
+- **Master Release Manual:** [`deployment.md`](file:///c:/Users/Anup%20Kumar/Desktop/projects/dcoy/deployment.md)

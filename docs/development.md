@@ -1,44 +1,50 @@
 # DcoY Developer Guide
 
-This guide describes development workflows, diagnostic tools, and simulation setups.
+This guide describes development workflows, diagnostic tools, and simulation setups for the DcoY Threat Defense Platform.
 
 ---
 
 ## 🛠️ Local Sandbox Setup
 
-1. **Virtual Environment**: Initialize virtual environments under `backend/`:
+1. **Backend Environment**:
    ```bash
    cd backend
    python -m venv .venv
-   # Activate: source .venv/bin/activate (Linux) or .\.venv\Scripts\Activate.ps1 (Windows)
+   # Activate: source .venv/bin/activate (Linux/macOS) or .\.venv\Scripts\Activate.ps1 (Windows)
    pip install -r requirements.txt
    ```
-2. **Dashboard packages**: Install Streamlit and charting packages:
+
+2. **Frontend React Workspace**:
    ```bash
-   cd dashboard
-   pip install -r requirements.txt
+   cd frontend
+   npm install
    ```
 
 ---
 
-## 🔍 Diagnostics & Connections Checks
+## 🔍 Diagnostics & Connection Checks
 
-We provide a diagnostic validation script `scripts/verify_setup.py` to confirm backend and ML availability:
+Confirm system availability using the verification diagnostic script:
 ```bash
 python scripts/verify_setup.py
 ```
-This script checks:
-* Model schema instantiation and Pydantic models.
-* Backend server connectivity on port `8000`.
-* Outlier predictions using Mock datasets.
+This script validates:
+* Pydantic schemas & SQLAlchemy ORM model availability.
+* FastAPI backend server connectivity on port `8001`.
+* Health endpoints (`/health/live`, `/health/ready`, `/metrics`).
+* React frontend workspace file structure and `API_BASE` endpoints.
 
 ---
 
-## 📈 Simulating Traffic Alerts
+## 📈 Simulating Traffic & Purple Team Attacks
 
-To feed active logs to the dashboard in real-time, run the mock traffic simulator script `simulator.py` from the root folder:
+Simulate active attack scenarios (SSH brute force, credential stuffing, TCP port sweeps, lateral movement) directly through the React dashboard **Attack Simulation** workspace, or trigger via the simulation API endpoint:
+
 ```bash
-python simulator.py
+curl -X POST http://127.0.0.1:8001/api/simulation/run \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"scenario_name": "SSH Brute Force Attack", "target_ip": "10.0.0.5"}'
 ```
-* **Mechanism**: Generates unique threat records (normal, brute-force, web attacks) and POSTs them to the backend `/api/ingest` route every 2 seconds.
-* **Result**: Dashboard gauge panels, Plotly express bar plots, and attack origin scatter maps will refresh dynamically.
+
+* **Mechanism**: The backend simulation engine (`app/services/simulation_engine.py`) generates synthetic event telemetry, evaluates Isolation Forest anomaly detection models, triggers Honeypot honeynet traps, and broadcasts events over WebSockets to the SOC Command Center in real-time.
