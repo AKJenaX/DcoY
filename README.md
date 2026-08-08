@@ -1,4 +1,4 @@
-# DcoY Threat Defense Platform
+<h1 align="center">DcoY Threat Defense Platform</h1>
 
 <p align="center">
   <strong>Enterprise Active Defense, Machine Learning Anomaly Detection & Deception Console</strong>
