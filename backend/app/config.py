@@ -39,7 +39,7 @@ class Settings:
         self.ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
         # Database Settings
-        self.DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///backend/dcoy.db")
+        self.DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:////tmp/dcoy.db")
 
         # LLM Reasoning Settings
         self.LLM_ENABLED: bool = os.getenv("LLM_ENABLED", "True").lower() == "true"
