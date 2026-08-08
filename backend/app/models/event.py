@@ -1,7 +1,19 @@
 """Pydantic V2 data models for request/response validation and typing."""
 
-from pydantic import BaseModel, Field
+from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence
+from pydantic import BaseModel, Field
+
+
+class GeolocationInfo(BaseModel):
+    """Structured geolocation information for mapping threat origins."""
+    ip: str = Field(..., description="Target IP Address")
+    lat: Optional[float] = Field(default=None, description="Latitude coordinate")
+    lon: Optional[float] = Field(default=None, description="Longitude coordinate")
+    country: str = Field(default="Unknown", description="Country name")
+    city: str = Field(default="Unknown", description="City name")
+    region: str = Field(default="Unknown", description="Region name")
+    geo_source: Optional[str] = Field(default="live", description="Source of coordinate data (live or mock)")
 
 
 class EventModel(BaseModel):
@@ -28,17 +40,6 @@ class EventModel(BaseModel):
 class IngestPayload(BaseModel):
     """Request body for event ingestion endpoints."""
     data: List[EventModel] = Field(..., description="List of threat events to ingest")
-
-
-class GeolocationInfo(BaseModel):
-    """Structured geolocation information for mapping threat origins."""
-    ip: str = Field(..., description="Target IP Address")
-    lat: Optional[float] = Field(default=None, description="Latitude coordinate")
-    lon: Optional[float] = Field(default=None, description="Longitude coordinate")
-    country: str = Field(default="Unknown", description="Country name")
-    city: str = Field(default="Unknown", description="City name")
-    region: str = Field(default="Unknown", description="Region name")
-    geo_source: Optional[str] = Field(default="live", description="Source of coordinate data (live or mock)")
 
 
 class AgentMessageModel(BaseModel):
