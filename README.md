@@ -1,4 +1,4 @@
-# DcoY
+<h1 align="center">DcoY</h1>
 
 <p align="center">
   <a href="https://github.com/AKJenaX/DcoY/releases"><img src="https://img.shields.io/badge/version-v1.0.0-blue.svg?style=flat-square" alt="Version"/></a>
