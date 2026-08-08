@@ -3,7 +3,7 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 
 # Compile requirements to local packages
 RUN pip install --no-cache-dir --user -r requirements.txt
@@ -18,7 +18,7 @@ RUN groupadd -r dcoy && useradd -r -g dcoy -d /home/dcoy -m dcoy
 
 # Copy built python packages
 COPY --from=builder /root/.local /home/dcoy/.local
-COPY --chown=dcoy:dcoy . .
+COPY --chown=dcoy:dcoy backend/ .
 
 # Update path to resolve locally installed binaries
 ENV PATH=/home/dcoy/.local/bin:$PATH
