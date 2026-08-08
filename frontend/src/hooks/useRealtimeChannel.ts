@@ -99,10 +99,9 @@ export function useRealtimeChannel(channel: string) {
       if (!active) return;
       
       const token = localStorage.getItem("auth_token") || "";
-      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
-        ? "localhost:8001" 
-        : window.location.host;
+      const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const wsProtocol = isLocal ? "ws:" : "wss:";
+      const wsHost = isLocal ? "localhost:8001" : "dcoy-9n8n.onrender.com";
       
       const wsUrl = `${wsProtocol}//${wsHost}/ws/${channel}?token=${token}`;
       

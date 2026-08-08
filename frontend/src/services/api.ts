@@ -73,7 +73,7 @@ export const api = {
         body: JSON.stringify({ username, password }),
       });
     } catch {
-      throw new Error("Backend unreachable. Start FastAPI on port 8001, then try again.");
+      throw new Error(`Backend unreachable (${API_BASE}). Ensure Render backend service is live, then try again.`);
     }
     if (!res.ok) throw new Error("Invalid credentials");
     const data = await res.json();
@@ -93,7 +93,7 @@ export const api = {
         body: JSON.stringify({ username, password }),
       });
     } catch {
-      throw new Error("Backend unreachable. Start FastAPI on port 8001, then try again.");
+      throw new Error(`Backend unreachable (${API_BASE}). Ensure Render backend service is live, then try again.`);
     }
     if (!res.ok) {
       const err = await res.json();
