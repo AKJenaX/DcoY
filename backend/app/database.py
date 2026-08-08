@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import os
+from pathlib import Path
 import time
 from typing import Any
 
@@ -11,8 +13,25 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session as SQLAlchemySession
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = "sqlite:///./dcoy.db"
+from app.config import settings
+
 logger = logging.getLogger(__name__)
+
+DATABASE_URL = settings.DATABASE_URL
+
+# Ensure parent directory exists for SQLite database files
+connect_args: dict[str, Any] = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False, "timeout": 10}
+    raw_path = DATABASE_URL.replace("sqlite:///", "", 1)
+    if raw_path and raw_path != ":memory:":
+        try:
+            db_file_path = Path(raw_path).resolve()
+            db_file_path.parent.mkdir(parents=True, exist_ok=True)
+        except Exception as err:
+            logger.warning(f"Could not create SQLite parent directory for {raw_path}: {err}")
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 SQLITE_LOCK_RETRY_METRICS = {
     "commit_retries": 0,
@@ -66,17 +85,14 @@ class RetrySQLiteSession(SQLAlchemySession):
             lambda: super(RetrySQLiteSession, self).commit(),
         )
 
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False, "timeout": 10}
-)
-
 
 @event.listens_for(engine, "connect")
 def _set_sqlite_busy_timeout(dbapi_connection: Any, connection_record: Any) -> None:
     """Ask SQLite to wait briefly before surfacing lock contention."""
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA busy_timeout = 10000")
-    cursor.close()
+    if DATABASE_URL.startswith("sqlite"):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA busy_timeout = 10000")
+        cursor.close()
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=RetrySQLiteSession)
