@@ -132,14 +132,16 @@ export const App: React.FC = () => {
   const [authError, setAuthError] = useState("");
   const [authSuccess, setAuthSuccess] = useState("");
 
-  const [utcTime, setUtcTime] = useState("");
+  const [istTime, setIstTime] = useState("");
   const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     setIsLoggedIn(api.isLoggedIn());
-    const interval = setInterval(() => {
-      setUtcTime(new Date().toUTCString().split(" ")[4]);
-    }, 1000);
+    const updateTime = () => {
+      setIstTime(new Date().toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour12: false }));
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -737,7 +739,7 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4 text-xs font-semibold font-mono">
-            <span className="text-gray-500 font-mono">UTC TIME: {utcTime || "00:00:00"}</span>
+            <span className="text-gray-500 font-mono">IST TIME: {istTime || "00:00:00"}</span>
             {telemetryStatus === "connected" && (
               <span className="flex items-center gap-1.5 text-green-400 bg-green-950/20 border border-green-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-bold">
                 <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]"></span> SYSTEM OK
