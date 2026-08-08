@@ -6,7 +6,7 @@ interface Point {
 }
 
 interface EnergyRibbonProps {
-  mode?: "login" | "map";
+  mode?: "login" | "map" | "ambient";
   customPointsA?: Point[];
   customPointsB?: Point[];
   width?: number;
@@ -27,7 +27,7 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
   raw = false,
 }) => {
   // Helper to generate cubic bezier control points for smooth natural curves
-  const generateBezierPath = (points: Point[], scaleMode: "login" | "map") => {
+  const generateBezierPath = (points: Point[], scaleMode: "login" | "map" | "ambient") => {
     if (points.length === 0) return "";
     if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
     
@@ -116,13 +116,14 @@ export const EnergyRibbon: React.FC<EnergyRibbonProps> = ({
   };
 
   const isMap = mode === "map";
-  const stdDev1 = isMap ? 14 : 8;
-  const stdDev2 = isMap ? 30 : 22;
-  const ribbonOpacity = isMap ? 0.75 : 0.3;
-  const ribbonStrokeWidth = isMap ? 22 : 16;
-  const ribbonCoreStrokeWidth = isMap ? 5.5 : 4.5;
-  const violetStrokeWidth = isMap ? 24 : 18;
-  const maskStrokeWidth = isMap ? 48 : 36;
+  const isAmbient = mode === "ambient";
+  const stdDev1 = isAmbient ? 3 : (isMap ? 14 : 8);
+  const stdDev2 = isAmbient ? 8 : (isMap ? 30 : 22);
+  const ribbonOpacity = isAmbient ? 0.08 : (isMap ? 0.75 : 0.3);
+  const ribbonStrokeWidth = isAmbient ? 4 : (isMap ? 22 : 16);
+  const ribbonCoreStrokeWidth = isAmbient ? 1.2 : (isMap ? 5.5 : 4.5);
+  const violetStrokeWidth = isAmbient ? 5 : (isMap ? 24 : 18);
+  const maskStrokeWidth = isAmbient ? 10 : (isMap ? 48 : 36);
 
   const content = (
     <>

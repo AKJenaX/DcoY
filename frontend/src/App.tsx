@@ -80,7 +80,25 @@ export const App: React.FC = () => {
 
     return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
+  const [parallaxOffset, setParallaxOffset] = useState({ x: 0, y: 0 });
 
+  useEffect(() => {
+    const isTouch = window.matchMedia("(pointer: coarse)").matches;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (isTouch || prefersReducedMotion) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const nx = (e.clientX / window.innerWidth) - 0.5;
+      const ny = (e.clientY / window.innerHeight) - 0.5;
+      setParallaxOffset({
+        x: -nx * 5, // -2.5px to +2.5px
+        y: -ny * 5
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
   const handleSearchResultClick = (item: any) => {
     setIsSearchFocused(false);
     setSearchQuery("");
@@ -364,10 +382,15 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#030305] flex text-gray-300 relative overflow-hidden">
+    <div className="h-screen max-h-screen bg-[#030305] flex text-gray-300 relative overflow-hidden">
       {/* Hoisted Global Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none select-none bg-[#030305]">
-        <Login3DBackground />
+      <div 
+        className="fixed inset-0 z-0 pointer-events-none select-none bg-[#030305] transition-transform duration-300 ease-out"
+        style={{
+          transform: `translate3d(${parallaxOffset.x * 0.3}px, ${parallaxOffset.y * 0.3}px, 0)`
+        }}
+      >
+        <Login3DBackground mode="ambient" />
       </div>
 
       {/* Sidebar Navigation */}
@@ -639,7 +662,7 @@ export const App: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 h-screen max-h-screen overflow-hidden relative z-10">
         {/* Sticky Top Header Navigation */}
         <header className="sticky top-0 border-b border-white/[0.08] px-8 py-3 flex justify-between items-center z-10" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", background: "rgba(5, 8, 14, 0.45)" }}>
           <div className="flex items-center gap-6 flex-1 max-w-2xl">
@@ -739,7 +762,12 @@ export const App: React.FC = () => {
         </header>
 
         {/* Viewport container */}
-        <main className="flex-1 p-8 overflow-y-auto relative bg-transparent z-10">
+        <main 
+          className="flex-1 min-h-0 p-8 overflow-y-auto relative bg-transparent z-10 transition-transform duration-300 ease-out"
+          style={{
+            transform: `translate3d(${parallaxOffset.x}px, ${parallaxOffset.y}px, 0)`
+          }}
+        >
           <div className="relative z-10">
             {renderContent()}
           </div>

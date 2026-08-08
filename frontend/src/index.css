@@ -187,19 +187,61 @@
   }
 }
 
-/* Custom scrollbar utility */
+/* Universal Uniform Scrollbar Design System */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(0, 229, 255, 0.45) rgba(8, 12, 20, 0.6);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(8, 12, 20, 0.6);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.4);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 4px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.75);
+  border-color: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(8, 12, 20, 0.8);
+}
+
+.scrollbar-thin::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
+  height: 8px;
 }
+
+.scrollbar-thin::-webkit-scrollbar-track,
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(8, 12, 20, 0.6);
 }
+
+.scrollbar-thin::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
+  background: rgba(0, 229, 255, 0.4);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 4px;
 }
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover,
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 229, 255, 0.55);
+  border-color: rgba(0, 229, 255, 0.4);
 }
 
 /* Honeycomb theme elements */
@@ -267,5 +309,83 @@
   z-index: 10;
   position: relative;
 }
+
+@keyframes telemetry-scan {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+.animate-telemetry-scan {
+  animation: telemetry-scan 6s linear infinite;
+}
+
+@keyframes breathing-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.45));
+    opacity: 0.75;
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.95));
+    opacity: 1;
+  }
+}
+
+.animate-breathing-glow {
+  animation: breathing-glow 3.5s ease-in-out infinite !important;
+}
+
+@keyframes compromise-pulse {
+  0% {
+    stroke-dashoffset: 60;
+  }
+  100% {
+    stroke-dashoffset: -520;
+  }
+}
+
+@keyframes waypoint-flash {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 1px currentColor);
+  }
+  15% {
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 8px currentColor);
+    stroke-width: 2.5;
+  }
+  30% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 1px currentColor);
+  }
+}
+
+.animate-waypoint-flash {
+  animation: waypoint-flash 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes waveform-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-breathing-glow,
+  .animate-waypoint-flash {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+
 
 

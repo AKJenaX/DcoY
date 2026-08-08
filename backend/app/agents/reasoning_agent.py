@@ -347,7 +347,10 @@ def answer_question_detailed(question: str, messages: List[Dict[str, Any]]) -> D
     risk_coverage = len([m for m in messages if m.get("risk_score") is not None])
     risk_ratio = risk_coverage / max(1, events_analyzed)
     
-    anomaly_coverage = len([m for m in messages if isinstance(m.get("details"), dict) and m.get("details").get("is_anomaly") is not None])
+    anomaly_coverage = len([
+        m for m in messages
+        if isinstance(m.get("details"), dict) and getattr(m.get("details"), "get", lambda k: None)("is_anomaly") is not None
+    ])
     anomaly_ratio = anomaly_coverage / max(1, events_analyzed)
     
     conf_score = int((gis_ratio * 30) + (risk_ratio * 40) + (anomaly_ratio * 30))

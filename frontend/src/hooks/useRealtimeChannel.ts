@@ -79,6 +79,22 @@ export function useRealtimeChannel(channel: string) {
       return;
     }
 
+    // Pre-fetch existing telemetry logs on mount
+    const fetchInitial = async () => {
+      try {
+        if (channel === "telemetry") {
+          const res = await api.getDetectLogs();
+          const eventsList = res.data || res.events || [];
+          if (Array.isArray(eventsList) && eventsList.length > 0 && active) {
+            setData(eventsList);
+          }
+        }
+      } catch (e) {
+        console.warn("Initial telemetry pre-fetch notice:", e);
+      }
+    };
+    fetchInitial();
+
     const connectWebSocket = () => {
       if (!active) return;
       

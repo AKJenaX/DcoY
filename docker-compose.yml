@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   backend:
     build:
@@ -5,22 +7,43 @@ services:
       dockerfile: Dockerfile
     container_name: dcoy_backend
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - ENV=production
       - DEBUG=false
-      - JWT_SECRET=prod_secret_key_super_secure_32_chars_long_minimum
+      - PORT=8001
+      - SECRET_KEY=prod_secret_key_super_secure_64_chars_long_minimum
       - LLM_ENABLED=false
       - LOG_FORMAT_JSON=true
     restart: unless-stopped
     volumes:
-      - dcoy_db_volume:/app/backend
+      - dcoy_db_volume:/app
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health/ready').read()"]
       interval: 15s
       timeout: 5s
       retries: 3
+    networks:
+      - dcoy_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dcoy_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dcoy_network
 
 volumes:
   dcoy_db_volume:
     driver: local
+
+networks:
+  dcoy_network:
+    driver: bridge

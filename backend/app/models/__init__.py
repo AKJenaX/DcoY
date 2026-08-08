@@ -12,6 +12,7 @@ from .event import (
     ApiDetectResponse,
     ApiExplainResponse,
 )
+from .auth_models import DBUser, DBApiKey
 
 __all__ = [
     "EventModel",
@@ -24,4 +25,6 @@ __all__ = [
     "IngestResponse",
     "ApiDetectResponse",
     "ApiExplainResponse",
+    "DBUser",
+    "DBApiKey",
 ]

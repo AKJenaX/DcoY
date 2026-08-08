@@ -1,7 +1,7 @@
 """Platform Registry and Services Health Monitor."""
 
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -104,7 +104,36 @@ class PlatformRegistry:
             "copilot_source": ollama_status
         }
 
-    def get_documentation(self) -> Dict[str, Any]:
+    def get_health_metrics(self, db: Optional[Session] = None) -> Dict[str, Any]:
+        """Convenience method returning health status metrics."""
+        if db is None:
+            from app.database import SessionLocal
+            db_sess = SessionLocal()
+            try:
+                return self.get_health_status(db_sess)
+            finally:
+                db_sess.close()
+        return self.get_health_status(db)
+
+    def get_api_inventory(self) -> Dict[str, Any]:
+        """Returns inventory of registered platform endpoints."""
+        return {
+            "status": "active",
+            "total_endpoints": 72,
+            "categories": [
+                "Health & Diagnostics",
+                "Authentication & API Keys",
+                "Anomaly Detection & Rules Engine",
+                "Deception & SOAR Orchestration",
+                "Executive Intelligence",
+                "Investigations & Knowledge Graph",
+                "Telemetry & Simulations",
+                "AI Copilot & Reasoning",
+                "WebSockets"
+            ]
+        }
+
+    def get_documentation(self, category: str = "all") -> Dict[str, Any]:
         """Retrieve automatically generated architecture guidelines, dependencies, and developer onboarding instructions."""
         
         # 1. Mermaid Architecture Diagram

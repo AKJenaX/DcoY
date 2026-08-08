@@ -156,37 +156,46 @@ export const Investigations: React.FC<InvestigationsProps> = ({ initialCaseId, o
       )}
 
       {!selectedCaseId && (
-        <GlassPanel borderColor="cyan" className="p-5 min-h-[220px] grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-5 overflow-hidden">
-          <div className="border-r border-gray-800 pr-5">
-            <div className="flex items-center gap-2 text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase">
-              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
-              CASE.CHRONO // TIMELINE
-            </div>
-            <div className="mt-3 text-3xl font-black font-mono text-white">{cases.length || 3}</div>
-            <div className="text-[10px] uppercase tracking-widest text-gray-500 font-mono">Active ledgers</div>
-            <div className="mt-5 rounded border border-amber-500/20 bg-amber-950/10 p-3 text-xs text-gray-300 font-sans">
-              Timeline-first triage highlights escalation order before analyst assignment.
-            </div>
+        <GlassPanel borderColor="cyan" className="p-5 space-y-4">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]"></span>
+            CASE.CHRONO // TIMELINE & ESCALATION STREAM
           </div>
-          <div className="relative pl-6">
-            <div className="absolute left-1 top-1 bottom-1 w-px bg-gradient-to-b from-cyan-500/70 via-amber-500/50 to-gray-800" />
-            {[
-              ["12:00:15", "Ingress alert correlated to decoy SSH telemetry", "Detected"],
-              ["12:02:40", "Evidence bundle attached to credential case", "Linked"],
-              ["12:04:12", "Containment playbook awaiting operator review", "Queued"],
-              ["12:08:33", "Analyst note requested for final severity rating", "Review"],
-            ].map(([time, title, status], idx) => (
-              <div key={title} className="relative mb-3 last:mb-0">
-                <div className={`absolute -left-[27px] top-1 h-3 w-3 rounded-full border border-[#0d0f14] ${idx === 0 ? "bg-red-500" : idx === 2 ? "bg-amber-500" : "bg-cyan-400"}`} />
-                <div className="flex items-center justify-between rounded border border-gray-800 bg-[#050b14]/70 px-3 py-2">
-                  <div>
-                    <div className="font-mono text-[10px] text-gray-500">{time}</div>
-                    <div className="text-xs font-semibold text-gray-200">{title}</div>
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-amber-500">{status}</span>
-                </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            {/* Left Column: Summary Info */}
+            <div className="space-y-3 lg:col-span-1 border-r border-gray-800/80 pr-5">
+              <div>
+                <div className="text-3xl font-black font-mono text-white">{cases.length || 3}</div>
+                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-mono">Active Ledgers</div>
               </div>
-            ))}
+              <div className="rounded border border-amber-500/20 bg-amber-950/10 p-3 text-xs text-gray-300 font-sans leading-relaxed">
+                Timeline-first triage highlights escalation order before analyst assignment.
+              </div>
+            </div>
+
+            {/* Right Column: Timeline Event Stream (Spans 3 Columns) */}
+            <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                ["12:00:15", "Ingress alert correlated to decoy SSH telemetry", "Detected"],
+                ["12:02:40", "Evidence bundle attached to credential case", "Linked"],
+                ["12:04:12", "Containment playbook awaiting operator review", "Queued"],
+                ["12:08:33", "Analyst note requested for final severity rating", "Review"],
+              ].map(([time, title, status], idx) => (
+                <div key={title} className="p-3.5 rounded-lg border border-gray-800/80 bg-[#050b14]/80 hover:border-cyan-500/40 transition-all flex justify-between items-center space-x-3">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${idx === 0 ? "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]" : idx === 2 ? "bg-amber-500" : "bg-cyan-400"}`} />
+                      <span className="font-mono text-[10px] text-cyan-400 font-semibold">{time}</span>
+                    </div>
+                    <div className="text-xs font-semibold text-gray-200 truncate">{title}</div>
+                  </div>
+                  <span className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/30 border border-amber-500/20 rounded shrink-0">
+                    {status}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </GlassPanel>
       )}

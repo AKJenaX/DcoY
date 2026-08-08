@@ -1,20 +1,24 @@
-"""Structured Observability and JSON Logging utility."""
+"""Structured Observability, JSON Logging, and Request Correlation utilities."""
 
 import json
 import logging
-import time
 from datetime import datetime, timezone
 from typing import Any, Dict
+
+from app.middleware.correlation import get_current_request_id
 
 
 class StructuredJsonFormatter(logging.Formatter):
     """Custom logging formatter that serializes log records to JSON structure."""
 
     def format(self, record: logging.LogRecord) -> str:
+        req_id = getattr(record, "request_id", None) or get_current_request_id() or "N/A"
+        
         log_payload: Dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
+            "request_id": req_id,
             "message": record.getMessage(),
             "filename": record.filename,
             "lineno": record.lineno,
@@ -26,8 +30,9 @@ class StructuredJsonFormatter(logging.Formatter):
             log_payload["exception"] = self.formatException(record.exc_info)
 
         # Include custom extra values passed dynamically
-        if hasattr(record, "extra_fields"):
-            log_payload.update(record.extra_fields)
+        extra_fields = getattr(record, "extra_fields", None)
+        if isinstance(extra_fields, dict):
+            log_payload.update(extra_fields)
 
         return json.dumps(log_payload)
 
@@ -53,4 +58,4 @@ def setup_observability(log_level: str = "INFO", json_format: bool = False):
         ))
     
     root_logger.addHandler(handler)
-    logging.getLogger("uvicorn.access").disabled = True  # disable redundant access logs
+    logging.getLogger("uvicorn.access").disabled = True

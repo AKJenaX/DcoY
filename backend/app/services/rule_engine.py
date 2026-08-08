@@ -25,8 +25,12 @@ class RuleEngine:
         r_id = int(rule_any.id)
         cached = self._compiled_cache.get(str(r_id))
         if cached is not None:
+            from app.utils.metrics import metrics_collector
+            metrics_collector.record_cache_hit()
             return cached
         
+        from app.utils.metrics import metrics_collector
+        metrics_collector.record_cache_miss()
         try:
             criteria = json.loads(str(rule_any.detection_logic))
         except Exception:

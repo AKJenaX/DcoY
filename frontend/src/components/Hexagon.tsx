@@ -21,27 +21,27 @@ export const Hexagon: React.FC<HexagonProps> = ({
     switch (glowColor) {
       case "amber":
         return {
-          stroke: "#f5a623",
-          filter: "drop-shadow(0 0 8px rgba(245, 166, 35, 0.6))",
+          stroke: "rgba(245, 166, 35, 0.45)",
+          filter: "drop-shadow(0 0 3px rgba(245, 166, 35, 0.2))",
         };
       case "cyan":
         return {
-          stroke: "#00e5ff",
-          filter: "drop-shadow(0 0 8px rgba(0, 229, 255, 0.6))",
+          stroke: "rgba(0, 229, 255, 0.45)",
+          filter: "drop-shadow(0 0 3px rgba(0, 229, 255, 0.2))",
         };
       case "red":
         return {
           stroke: "#ef4444",
-          filter: "drop-shadow(0 0 8px rgba(239, 68, 68, 0.6))",
+          filter: "drop-shadow(0 0 10px rgba(239, 68, 68, 0.8))",
         };
       case "green":
         return {
-          stroke: "#10b981",
-          filter: "drop-shadow(0 0 8px rgba(16, 185, 129, 0.6))",
+          stroke: "rgba(16, 185, 129, 0.45)",
+          filter: "drop-shadow(0 0 3px rgba(16, 185, 129, 0.2))",
         };
       default:
         return {
-          stroke: "rgba(255, 255, 255, 0.15)",
+          stroke: "rgba(255, 255, 255, 0.12)",
         };
     }
   };

@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import { HexField } from "./HexField";
 import { EnergyRibbon } from "./EnergyRibbon";
 
-export const Login3DBackground: React.FC = () => {
+interface Login3DBackgroundProps {
+  mode?: "hero" | "ambient";
+}
+
+export const Login3DBackground: React.FC<Login3DBackgroundProps> = ({ mode = "hero" }) => {
   const [animate, setAnimate] = useState(true);
 
   useEffect(() => {
@@ -40,10 +44,10 @@ export const Login3DBackground: React.FC = () => {
       />
 
       {/* 3D Hexagon Column Field (Painter's Algorithm Extrusion) */}
-      <HexField density="login" animate={animate} opacity={0.65} />
+      <HexField density={mode === "ambient" ? "sparse" : "login"} animate={animate} opacity={mode === "ambient" ? 0.15 : 0.65} />
 
       {/* Organic Energy Ribbons (Amber + Cyan + Violet Intersections) */}
-      <EnergyRibbon mode="login" animate={animate} opacity={0.9} />
+      <EnergyRibbon mode={mode === "ambient" ? "ambient" : "login"} animate={animate} opacity={mode === "ambient" ? 0.35 : 0.9} />
     </div>
   );
 };

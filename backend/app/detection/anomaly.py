@@ -1,7 +1,7 @@
 """Anomaly detection module (Phase 3) with Phase 4 rule-based attack labels."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, cast, Optional
 
 import numpy as np
 import pandas as pd
@@ -42,22 +42,18 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
 def train_model(df: pd.DataFrame) -> IsolationForest:
     """Fit an Isolation Forest on the feature columns."""
     features = df[FEATURE_COLUMNS]
-    model = IsolationForest(contamination=0.2, random_state=42)
+    model = IsolationForest(contamination=cast(Any, 0.2), random_state=42)
     model.fit(features)
     return model
 
 
 def _jsonable(value: Any) -> Any:
     """Convert numpy/pandas scalars to plain Python types for JSON."""
-    if value is None or isinstance(value, (str, bool)):
+    if value is None or isinstance(value, (str, bool, int, float)):
         return value
     if isinstance(value, (np.integer,)):
         return int(value)
     if isinstance(value, (np.floating,)):
-        return float(value)
-    if isinstance(value, int):
-        return int(value)
-    if isinstance(value, float):
         return float(value)
     return value
 
@@ -126,5 +122,5 @@ def detect_anomalies(df: pd.DataFrame, model: IsolationForest) -> List[Dict[str,
 
     raw_rows = enriched.to_dict(orient="records")
     return [
-        {key: _jsonable(val) for key, val in row.items()} for row in raw_rows
+        {str(key): _jsonable(val) for key, val in row.items()} for row in raw_rows
     ]
